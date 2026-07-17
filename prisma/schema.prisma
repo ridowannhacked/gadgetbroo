@@ -12,6 +12,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id            String    @id
   name          String
@@ -19,6 +24,7 @@ model User {
   emailVerified Boolean
   image         String?
   createdAt     DateTime
+  role          Role      @default(USER)
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
