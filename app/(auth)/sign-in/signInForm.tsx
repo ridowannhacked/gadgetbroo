@@ -1,10 +1,15 @@
 "use client";
 
-import { GitHubIcon } from "@/components/icons/GitHubIcon";
-import { GoogleIcon } from "@/components/icons/GoogleIcon";
+import {
+  FaGithub,
+  FaGoogle,
+} from "react-icons/fa";
+
 import { LoadingButton } from "@/components/loading-button";
-import { PasswordInput } from "@/components/password-input";
+import { PasswordInput } from "../../../components/password-input";
 import { Button } from "@/components/ui/button";
+import { signInSchema } from "../../../zodSchemas/signInSchema";
+
 import {
   Card,
   CardContent,
@@ -29,15 +34,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { tr } from "zod/v4/locales";
 import { authClient } from "../../../lib/auth-client";
 import { toast } from "sonner";
 
-const signInSchema = z.object({
-  email: z.email({ message: "Please enter a valid email" }),
-  password: z.string().min(1, { message: "Password is required" }),
-  rememberMe: z.boolean().optional(),
-});
 
 type SignInValues = z.infer<typeof signInSchema>;
 
@@ -159,7 +158,7 @@ export function SignInForm() {
               </div>
             )}
 
-            <LoadingButton type="submit" className="w-full" loading={loading}>
+            <LoadingButton type="submit" className="w-full cursor-pointer" loading={loading}>
               Login
             </LoadingButton>
 
@@ -167,22 +166,22 @@ export function SignInForm() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full gap-2"
+                className="w-full gap-2 cursor-pointer"
                 disabled={loading}
                 onClick={() => handleSocialSignIn("google")}
               >
-                <GoogleIcon width="0.98em" height="1em" />
+                <FaGoogle width="0.98em" height="1em" />
                 Sign in with Google
               </Button>
 
               <Button
                 type="button"
                 variant="outline"
-                className="w-full gap-2"
+                className="w-full gap-2 cursor-pointer"
                 disabled={loading}
                 onClick={() => handleSocialSignIn("github")}
               >
-                <GitHubIcon />
+                <FaGithub  />
                 Sign in with Github
               </Button>
             </div>
