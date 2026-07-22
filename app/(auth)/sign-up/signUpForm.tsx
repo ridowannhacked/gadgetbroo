@@ -62,7 +62,6 @@ export function SignUpForm() {
         callbackURL: "/email-verified"
       })
     if (error) {
-      console.log(error)
       setError(error.message || "Failed to Create user")
       return;
     } else {

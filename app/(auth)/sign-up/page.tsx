@@ -1,9 +1,14 @@
-function SignUp() {
-  return (
-    <div>
-      SignUp Page
-    </div>
-  )
-}
+import type { Metadata } from "next";
+import { SignUpForm } from "./signUpForm";
 
-export default SignUp
+export const metadata: Metadata = {
+  title: "Sign up",
+};
+
+export default function SignUp() {
+  return (
+    <main className="flex min-h-svh items-center justify-center px-4">
+      <SignUpForm />
+    </main>
+  );
+}
