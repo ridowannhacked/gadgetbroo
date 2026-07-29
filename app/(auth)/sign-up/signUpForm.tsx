@@ -1,7 +1,7 @@
 "use client";
 
 import { LoadingButton } from "../../../components/ui/loading-button";
-import { PasswordInput } from "../../../components/ui/password-input";
+import { PasswordInput } from "../../../components/password-input";
 import {
   Card,
   CardContent,
