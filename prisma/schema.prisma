@@ -12,22 +12,19 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 model User {
-  id            String    @id
+  id            String   @id
   name          String
   email         String
   emailVerified Boolean
   image         String?
   createdAt     DateTime
-  role          Role      @default(USER)
   updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+
+  roleId   String?
+  role     Role?     @relation(fields: [roleId], references: [id])
+  sessions Session[]
+  accounts Account[]
 
   @@unique([email])
   @@map("user")
@@ -76,4 +73,39 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique // "admin", "customer", "manager"
+  description String       @default("")
+  users       User[]
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("roles")
+}
+
+model rateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+
+  @@map("rateLimit")
+}
+
+model Permission {
+  id        String  @id @default(cuid())
+  resource  String // "products", "orders", "users", etc.
+  canView   Boolean @default(false)
+  canCreate Boolean @default(false)
+  canUpdate Boolean @default(false)
+  canDelete Boolean @default(false)
+  roleId    String
+  role      Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, resource])
+  @@map("permissions")
 }

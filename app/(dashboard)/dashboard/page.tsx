@@ -12,9 +12,11 @@ import { format } from "date-fns";
 import { CalendarDaysIcon, MailIcon, ShieldIcon, UserIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getServerSession } from "../../../helpers/get-servesession";
 import { unauthorized } from "next/navigation";
+import { getServerSession } from "../../../helpers/get-servesession";
 import { User } from "../../../lib/auth";
+import prisma from "../../../lib/prisma";
+import { FullUser } from "../../../lib/types";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -26,6 +28,13 @@ export default async function DashboardPage() {
   const user = session?.user
   if (!user) unauthorized()
 
+  // Get full user with role from DB
+  const fullUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    include: { role: true },
+  });
+
+  if (!fullUser) return <p>User not found</p>;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12">
@@ -36,16 +45,15 @@ export default async function DashboardPage() {
             Welcome back! Here&apos;s your account overview.
           </p>
         </div>
-        {/* TODO: Use actual user data */}
         {!user.emailVerified && <EmailVerificationAlert />}
-        <ProfileInformation user={user} />
+        <ProfileInformation user={fullUser} />
       </div>
     </main>
   );
 }
 
 interface ProfileInformationProps {
-  user: User
+  user: FullUser
 }
 
 function ProfileInformation({ user }: ProfileInformationProps) {
@@ -73,7 +81,7 @@ function ProfileInformation({ user }: ProfileInformationProps) {
             {user.role && (
               <Badge>
                 <ShieldIcon className="size-3" />
-                {user.role}
+                {user.role.name}
               </Badge>
             )}
           </div>
