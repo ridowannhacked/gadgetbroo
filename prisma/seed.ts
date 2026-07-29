@@ -25,35 +25,22 @@ async function main() {
   });
 
   if (!existing) {
-    const hashedPassword = await auth.api.hashPassword({
-      password: "Admin@1234!",
-    });
-
-    const userId = crypto.randomUUID();
-
-    await prisma.user.create({
-      data: {
-        id: userId,
+    // Use Better Auth's signup API which handles password hashing internally
+    const createdUser = await auth.api.signUpEmail({
+      body: {
         name: "Admin",
         email: "admin@gadgetbroo.com",
-        emailVerified: true,
-        roleId: adminRole.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        password: "Admin@1234!",
       },
     });
 
-    await prisma.account.create({
-      data: {
-        id: crypto.randomUUID(),
-        accountId: "admin@gadgetbroo.com",
-        providerId: "email",
-        userId: userId,
-        password: hashedPassword,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
+    // Override the "customer" role (assigned by after hook) to admin
+    if (createdUser?.user?.id) {
+      await prisma.user.update({
+        where: { id: createdUser.user.id },
+        data: { roleId: adminRole.id },
+      });
+    }
 
     console.log("✓ Admin user seeded");
   } else {
