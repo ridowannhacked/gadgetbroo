@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "../../../../lib/auth";
 import prisma from "../../../../lib/prisma";
+import { revalidatePath } from "next/cache";
 
 // Basic auth check for admin routes
 async function checkAdmin() {
@@ -54,6 +55,8 @@ export async function POST(request: NextRequest) {
         sortOrder: sortOrder ?? 0,
       },
     });
+
+    revalidatePath("/");
 
     return NextResponse.json({ media: newMedia }, { status: 201 });
   } catch (error) {

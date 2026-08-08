@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "../../../../../lib/auth";
-import prisma from "../../../../../lib/prisma";
+import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 async function checkAdmin() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -27,6 +28,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       data: body,
     });
 
+    revalidatePath("/");
+
     return NextResponse.json({ media: updated });
   } catch (error) {
     console.error(error);
@@ -44,6 +47,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await prisma.siteMedia.delete({
       where: { id },
     });
+
+    revalidatePath("/");
 
     // Note: We leave the raw ImageKit file alone so it remains in the Media Library for other uses.
     return NextResponse.json({ success: true, message: "Banner deleted" });
