@@ -50,7 +50,7 @@ export default function SiteMediaAdminPage() {
     }
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!selectedFile || !newTitle) {
       toast.error("Title and Image are required.");
       return;
@@ -63,25 +63,42 @@ export default function SiteMediaAdminPage() {
       placement: newPlacement,
       linkUrl: newLinkUrl || null,
       isActive: true,
-      sortOrder: banners.length,
+      ...(editingId ? {} : { sortOrder: banners.length }),
     };
 
     try {
-      const res = await fetch("/api/site-media", {
-        method: "POST",
+      const url = editingId ? `/api/site-media/${editingId}` : "/api/site-media";
+      const method = editingId ? "PATCH" : "POST";
+      
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to create banner");
-      toast.success("Banner created!");
+      if (!res.ok) throw new Error(`Failed to ${editingId ? "update" : "create"} banner`);
+      toast.success(`Banner ${editingId ? "updated" : "created"}!`);
+      
       setShowAddForm(false);
+      setEditingId(null);
       setNewTitle("");
       setNewLinkUrl("");
       setSelectedFile(null);
       fetchBanners();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Error creating banner");
+      toast.error(e instanceof Error ? e.message : "Error saving banner");
     }
+  };
+
+  const openEditForm = (banner: SiteMedia) => {
+    setEditingId(banner.id);
+    setNewTitle(banner.title);
+    setNewPlacement(banner.placement);
+    setNewLinkUrl(banner.linkUrl || "");
+    // Create a mock selectedFile object to satisfy the form state
+    setSelectedFile({ fileId: banner.fileId, url: banner.url, name: banner.title } as any);
+    setShowAddForm(true);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id: string) => {
@@ -121,7 +138,13 @@ export default function SiteMediaAdminPage() {
             <p className="text-sm text-slate-400 mt-1">Manage storefront hero sliders and promotional graphics.</p>
           </div>
           <Button 
-            onClick={() => setShowAddForm(true)} 
+            onClick={() => {
+              setEditingId(null);
+              setNewTitle("");
+              setNewLinkUrl("");
+              setSelectedFile(null);
+              setShowAddForm(true);
+            }} 
             className="bg-blue-600 hover:bg-blue-500 text-white gap-2"
           >
             <Plus size={16} /> Add Banner
@@ -132,8 +155,8 @@ export default function SiteMediaAdminPage() {
         {showAddForm && (
           <div className="bg-[#12151a] border border-slate-800 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">Create New Banner</h2>
-              <button onClick={() => setShowAddForm(false)} className="text-slate-500 hover:text-white">
+              <h2 className="text-lg font-semibold text-white">{editingId ? "Edit Banner" : "Create New Banner"}</h2>
+              <button onClick={() => { setShowAddForm(false); setEditingId(null); }} className="text-slate-500 hover:text-white">
                 <X size={18} />
               </button>
             </div>
@@ -191,8 +214,8 @@ export default function SiteMediaAdminPage() {
             </div>
             
             <div className="flex justify-end pt-4 border-t border-slate-800">
-              <Button onClick={handleCreate} className="bg-emerald-600 hover:bg-emerald-500 text-white px-8">
-                Save Banner
+              <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-500 text-white px-8">
+                {editingId ? "Update Banner" : "Save Banner"}
               </Button>
             </div>
           </div>
@@ -218,6 +241,9 @@ export default function SiteMediaAdminPage() {
                       className={`px-2 py-1 text-[10px] font-bold rounded bg-black/80 ${banner.isActive ? "text-amber-400" : "text-emerald-400"}`}
                     >
                       {banner.isActive ? "DISABLE" : "ENABLE"}
+                    </button>
+                    <button onClick={() => openEditForm(banner)} className="p-1.5 rounded bg-black/80 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors">
+                      <Edit size={14} />
                     </button>
                     <button onClick={() => handleDelete(banner.id)} className="p-1.5 rounded bg-black/80 text-red-400 hover:bg-red-500 hover:text-white transition-colors">
                       <Trash2 size={14} />

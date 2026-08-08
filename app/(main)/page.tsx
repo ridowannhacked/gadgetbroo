@@ -1,6 +1,7 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ArrowRight, Search } from "lucide-react";
+import HeroSlider from "@/components/storefront/HeroSlider";
 
 // Force dynamic if needed, or rely on ISR/revalidation
 export const revalidate = 3600; // revalidate every hour
@@ -47,75 +48,27 @@ export default async function Home() {
       orderBy: { sortOrder: "asc" }
     })
   ]);
-
-  const activeHero = heroBanners[0]; // For now, just use the first active hero banner
-
   // Duplicate categories array to make the infinite marquee scroll seamless
   const marqueeCategories = [...categories, ...categories, ...categories];
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-200 selection:bg-blue-500/30 overflow-x-hidden">
-      
+
       {/* Hero Section */}
       <section className="relative h-[70vh] w-full flex items-center justify-center overflow-hidden">
-        {/* Dynamic Background Banner */}
-        {activeHero ? (
-          <>
-            <div className="absolute inset-0 bg-black z-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={`${activeHero.url}?tr=w-1920`} 
-                alt={activeHero.title}
-                className="w-full h-full object-cover opacity-60"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-0" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-0" />
-            
-            <div className="relative z-10 flex flex-col items-start text-left px-8 w-full max-w-7xl mx-auto">
-              <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-white mb-6 max-w-2xl">
-                {activeHero.title}
-              </h1>
-              {activeHero.linkUrl && (
-                <Link 
-                  href={activeHero.linkUrl}
-                  className="bg-blue-600 text-white font-medium px-8 py-3.5 rounded-full hover:bg-blue-500 transition-colors flex items-center gap-2"
-                >
-                  Explore Offer <ArrowRight size={16} />
-                </Link>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Fallback Static Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-[#0a0a0a]/50 to-[#0a0a0a] z-0" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.15)_0,rgba(0,0,0,0)_50%)]" />
-            
-            <div className="relative z-10 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto mt-[-5vh]">
-              <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-white mb-6">
-                Pro power. <br className="hidden sm:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-                  Next-gen performance.
-                </span>
-              </h1>
-              <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mb-10 font-light">
-                Discover the latest technology designed to push the boundaries of what's possible. 
-                Sleek, powerful, and ready for whatever comes next.
-              </p>
-            </div>
-          </>
-        )}
         
+        {/* The new interactive Slider handles the backgrounds and the content logic */}
+        <HeroSlider banners={heroBanners.map(b => ({ id: b.id, title: b.title, url: b.url, linkUrl: b.linkUrl }))} />
+
         {/* Global Search Bar (Positioned at bottom of hero) */}
-        <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 w-full max-w-2xl mx-auto px-4 z-20">
+        <div className="absolute bottom-[24px] left-1/2 -translate-x-1/2 w-full max-w-2xl mx-auto px-4 z-20">
           <form action="/store" method="GET" className="relative flex items-center w-full group">
             <Search className="absolute left-6 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={20} />
             <input 
               type="text" 
               name="search"
               placeholder="Search for smartphones, laptops, accessories..." 
-              className="w-full bg-[#111318] border border-slate-700 text-white placeholder:text-slate-500 rounded-full py-4 pl-14 pr-32 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-2xl"
+              className="w-full bg-[#111318]/90 backdrop-blur-xl border border-slate-700/50 text-white placeholder:text-slate-400 rounded-full py-4 pl-14 pr-32 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-2xl"
             />
             <button type="submit" className="absolute right-2 bg-blue-600 text-white font-medium px-6 py-2.5 rounded-full hover:bg-blue-500 transition-colors">
               Search

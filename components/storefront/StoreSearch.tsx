@@ -38,9 +38,15 @@ export default function StoreSearch() {
     if (searchTerm === (searchParams.get("search") || "")) return;
 
     const timeoutId = setTimeout(() => {
-      router.replace(`${pathname}?${createQueryString("search", searchTerm)}`, {
-        scroll: false,
-      });
+      if (pathname !== "/store") {
+        if (searchTerm) {
+          router.push(`/store?${createQueryString("search", searchTerm)}`);
+        }
+      } else {
+        router.replace(`${pathname}?${createQueryString("search", searchTerm)}`, {
+          scroll: false,
+        });
+      }
     }, 400); // 400ms debounce
 
     return () => clearTimeout(timeoutId);

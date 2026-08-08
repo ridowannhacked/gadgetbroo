@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { getServerSession } from '../helpers/get-servesession';
 import prisma from '../lib/prisma';
 import CartIcon from './storefront/CartIcon';
-import { User as UserIcon, Search, LayoutDashboard, LogOut } from 'lucide-react';
+import { User as UserIcon, LayoutDashboard, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
+import StoreSearch from './storefront/StoreSearch';
 import LogoutButton from './logoutUser';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
@@ -21,8 +22,8 @@ export default async function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-sm">
+      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Logo */}
         <div className="flex items-center gap-6">
@@ -43,11 +44,13 @@ export default async function Navbar() {
           </nav>
         </div>
 
+        {/* Global Search Bar (Desktop) */}
+        <div className="hidden sm:block flex-1 max-w-xl mx-8">
+          <StoreSearch />
+        </div>
+
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-          <button className="p-2 text-slate-300 hover:text-white transition-colors hidden sm:block">
-            <Search size={18} />
-          </button>
 
           <CartIcon />
 
