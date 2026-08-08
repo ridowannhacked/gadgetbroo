@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { ImageKitProvider } from "@imagekit/next";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -58,15 +59,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <ImageKitProvider urlEndpoint="https://ik.imagekit.io/rt9szzzbg">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </ImageKitProvider>
       </body>
     </html>
   );

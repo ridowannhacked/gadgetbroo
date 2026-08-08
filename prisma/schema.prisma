@@ -5,7 +5,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -21,12 +21,18 @@ model User {
   createdAt     DateTime
   updatedAt     DateTime
 
-  roleId   String?
-  role     Role?     @relation(fields: [roleId], references: [id])
-  sessions Session[]
-  accounts Account[]
+  roleId    String?
+  role      Role?      @relation(fields: [roleId], references: [id])
+  sessions  Session[]
+  accounts  Account[]
+  addresses Address[]
+  orders    Order[]
+  reviews   Review[]
+  auditLogs AuditLog[]
 
   @@unique([email])
+  @@index([email, name])
+  @@index([roleId])
   @@map("user")
 }
 
@@ -42,6 +48,7 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
+  @@index([userId])
   @@map("session")
 }
 
@@ -61,6 +68,7 @@ model Account {
   createdAt             DateTime
   updatedAt             DateTime
 
+  @@index([userId])
   @@map("account")
 }
 
@@ -107,5 +115,259 @@ model Permission {
   role      Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, resource])
+  @@index([roleId])
   @@map("permissions")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
+  CASH_ON_DELIVERY
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  description String           @db.Text
+  brand       String
+  isActive    Boolean          @default(true)
+  isFeatured  Boolean          @default(false)
+  isDeleted   Boolean          @default(false)
+  deletedAt   DateTime?
+  categoryId  String
+  category    Category         @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  images      ProductImage[]
+  reviews     Review[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([isFeatured, isActive])
+  @@map("products")
+}
+
+model ProductVariant {
+  id         String      @id @default(cuid())
+  name       String
+  productId  String
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color      String?
+  size       String?
+  storage    String?
+  sku        String      @unique
+  price      Decimal     @db.Decimal(10, 2)
+  stock      Int         @default(0)
+  isActive   Boolean     @default(true)
+  isDeleted  Boolean     @default(false)
+  deletedAt  DateTime?
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model MediaFile {
+  id        String         @id @default(cuid())
+  url       String // Full ImageKit CDN URL (https://ik.imagekit.io/rt9szzzbg/...)
+  fileId    String         @unique // ImageKit unique identifier
+  name      String // Original file name
+  filePath  String         @default("/gadgetbroo/products") // ImageKit folder hierarchy
+  fileType  String         @default("image") // "image" | "video"
+  mimeType  String? // Exact MIME (e.g., "image/webp", "video/mp4")
+  size      Int            @default(0) // Size in bytes
+  width     Int?
+  height    Int?
+  hash      String?        @unique // SHA-256 cryptographic hash of raw file buffer for deduplication
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  images    ProductImage[] // Many-to-many link to products via ProductImage junction
+
+  @@index([fileType, createdAt])
+  @@map("media_files")
+}
+
+model ProductImage {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mediaFileId String // reference to the MediaFile record
+  mediaFile   MediaFile @relation(fields: [mediaFileId], references: [id])
+  isPrimary   Boolean   @default(false)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([productId])
+  @@index([mediaFileId])
+  @@map("product_images")
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
+  phone      String
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String
+  country    String   @default("BD")
+  isDefault  Boolean  @default(false)
+  orders     Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Order {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id])
+  addressId             String
+  address               Address       @relation(fields: [addressId], references: [id])
+  status                OrderStatus   @default(PENDING)
+  paymentStatus         PaymentStatus @default(UNPAID)
+  paymentMethod         PaymentMethod @default(STRIPE)
+  stripePaymentIntentId String?
+  subtotal              Decimal       @db.Decimal(10, 2)
+  discount              Decimal       @default(0) @db.Decimal(10, 2)
+  total                 Decimal       @db.Decimal(10, 2)
+  items                 OrderItem[]
+  notes                 String?
+  adminNotes            String?       @db.Text
+  trackingNumber        String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([addressId])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String         @id @default(cuid())
+  orderId      String
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId    String
+  variant      ProductVariant @relation(fields: [variantId], references: [id])
+  quantity     Int
+  priceAtOrder Decimal        @db.Decimal(10, 2)
+
+  // IMMUTABLE CHECKOUT SNAPSHOTS:
+  productName   String // Exact Product.name at time of order
+  variantName   String // Exact Variant details (e.g. "Color: Blue, 256GB") at time of order
+  skuAtOrder    String // SKU code at time of order
+  imageSnapshot String? // CDN URL of primary image at checkout
+
+  @@index([orderId])
+  @@index([variantId])
+  @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  title     String?
+  body      String?  @db.Text
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+enum MediaPlacement {
+  HERO_SLIDER
+  PROMOTIONAL_BANNER
+  CATEGORY_BANNER
+}
+
+model SiteMedia {
+  id        String         @id @default(cuid())
+  title     String
+  url       String
+  fileId    String
+  placement MediaPlacement
+  linkUrl   String? // clicking the banner goes here
+  isActive  Boolean        @default(true)
+  sortOrder Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("site_media")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String // e.g., "PRODUCT_CREATED", "MEDIA_DELETED", "MEDIA_REUSED", "ROLE_UPDATED"
+  entity    String // e.g., "Product", "MediaFile", "User"
+  entityId  String
+  metadata  Json? // Before/after modification state snapshots
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entity, entityId, createdAt])
+  @@map("audit_logs")
+}
+
+model ShippingZone {
+  id          String   @id @default(cuid())
+  stateName   String   // e.g., "Dhaka Division"
+  cityName    String   // e.g., "Dhaka City", "Gazipur"
+  deliveryFee Decimal  @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([stateName, cityName])
+  @@map("shipping_zones")
 }

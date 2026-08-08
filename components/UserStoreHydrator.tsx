@@ -1,17 +1,13 @@
-// components/UserStoreHydrator.tsx
-"use client";
-import { useEffect } from "react";
-import { useUserStore } from "../lib/stores/useUserStore";
-import type { User } from "../lib/auth";  // ← import the real type
+/**
+ * @deprecated UserStoreHydrator is DEPRECATED as of Phase 2 refactor.
+ *
+ * This component used `useEffect` to sync server session data into Zustand,
+ * causing hydration flicker and state desync on session expiry.
+ *
+ * It is no longer mounted in any layout. Replaced by:
+ *   components/auth/AuthSessionProvider.tsx  (RSC → Client React Context)
+ *
+ * Safe to delete this file once confirmed no lingering imports exist.
+ */
 
-type Props = {
-  user: User | null;  // ← use it here instead of the manual definition
-};
-
-export function UserStoreHydrator({ user }: Props) {
-  const setUser = useUserStore((s) => s.setUser);
-  useEffect(() => {
-    setUser(user);
-  }, [user, setUser]);
-  return null;
-}
+export {};

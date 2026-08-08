@@ -1,34 +1,20 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { UserAvatar } from "@/components/user-avatar";
 import { format } from "date-fns";
-import { CalendarDaysIcon, MailIcon, ShieldIcon, UserIcon } from "lucide-react";
+import { User, Mail, Calendar, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { unauthorized } from "next/navigation";
 import { getServerSession } from "../../../helpers/get-servesession";
-import { User } from "../../../lib/auth";
 import prisma from "../../../lib/prisma";
-import { FullUser } from "../../../lib/types";
 
 export const metadata: Metadata = {
-  title: "Dashboard",
+  title: "My Profile - GadgetBroo",
 };
 
 export default async function DashboardPage() {
-  // TODO: Check for authentication
-  const session = await getServerSession()
-  const user = session?.user
-  if (!user) unauthorized()
+  const session = await getServerSession();
+  const user = session?.user;
+  if (!user) unauthorized();
 
-  // Get full user with role from DB
   const fullUser = await prisma.user.findUnique({
     where: { id: user.id },
     include: { role: true },
@@ -37,90 +23,61 @@ export default async function DashboardPage() {
   if (!fullUser) return <p>User not found</p>;
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-12">
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here&apos;s your account overview.
-          </p>
-        </div>
-        {!user.emailVerified && <EmailVerificationAlert />}
-        <ProfileInformation user={fullUser} />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white tracking-tight">My Profile</h1>
+        <p className="text-sm text-slate-400 mt-1">Manage your account details.</p>
       </div>
-    </main>
-  );
-}
 
-interface ProfileInformationProps {
-  user: FullUser
-}
+      <div className="bg-[#0b0f19] border border-slate-800/60 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-8">
+        
+        {/* Avatar Placeholder */}
+        <div className="w-32 h-32 bg-slate-800 rounded-full border-4 border-[#070a12] flex items-center justify-center text-slate-500 shadow-xl shrink-0">
+          <User size={48} />
+        </div>
 
-function ProfileInformation({ user }: ProfileInformationProps) {
-  // TODO: Render real user info
+        {/* Info */}
+        <div className="flex-1 space-y-4 text-center sm:text-left">
+          <div>
+            <h2 className="text-2xl font-bold text-white">{fullUser.name}</h2>
+            <div className="flex items-center justify-center sm:justify-start gap-2 text-slate-400 mt-1">
+              <Mail size={14} />
+              <span className="text-sm">{fullUser.email}</span>
+              {!fullUser.emailVerified && (
+                <span className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full border border-red-500/20 font-semibold uppercase tracking-wider ml-2">
+                  Unverified
+                </span>
+              )}
+            </div>
+          </div>
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UserIcon className="size-5" />
-          Profile Information
-        </CardTitle>
-        <CardDescription>
-          Your account details and current status
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <div className="flex flex-col items-center gap-3">
-            <UserAvatar
-              name={user.name}
-              image={user.image}
-              className="size-32 sm:size-24"
-            />
-            {user.role && (
-              <Badge>
-                <ShieldIcon className="size-3" />
-                {user.role.name}
-              </Badge>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800/50">
+            <div>
+              <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
+                <Calendar size={12} /> Member Since
+              </div>
+              <div className="text-slate-300 font-medium">
+                {format(fullUser.createdAt, "MMMM d, yyyy")}
+              </div>
+            </div>
+            
+            {fullUser.role && (
+              <div>
+                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
+                  <Shield size={12} /> Account Role
+                </div>
+                <div className="text-blue-400 font-medium capitalize flex items-center justify-center sm:justify-start gap-2">
+                  {fullUser.role.name}
+                  {fullUser.role.name === 'admin' && (
+                    <Link href="/admin" className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-500 transition-colors">
+                      Admin Panel
+                    </Link>
+                  )}
+                </div>
+              </div>
             )}
           </div>
-
-          <div className="flex-1 space-y-4">
-            <div>
-              <h3 className="text-2xl font-semibold">{user.name}</h3>
-              <p className="text-muted-foreground">{user.email}</p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <CalendarDaysIcon className="size-4" />
-                Member Since
-              </div>
-              <p className="font-medium">
-                {format(user.createdAt, "MMMM d, yyyy")}
-              </p>
-            </div>
-          </div>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function EmailVerificationAlert() {
-  return (
-    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800/50 dark:bg-yellow-950/30">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <MailIcon className="size-5 text-yellow-600 dark:text-yellow-400" />
-          <span className="text-yellow-800 dark:text-yellow-200">
-            Please verify your email address to access all features.
-          </span>
-        </div>
-        <Button size="sm" asChild>
-          <Link href="/verify-email">Verify Email</Link>
-        </Button>
       </div>
     </div>
   );

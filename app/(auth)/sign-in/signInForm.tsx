@@ -173,17 +173,6 @@ export function SignInForm() {
                 <FaGoogle width="0.98em" height="1em" />
                 Sign in with Google
               </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2 cursor-pointer"
-                disabled={loading}
-                onClick={() => handleSocialSignIn("github")}
-              >
-                <FaGithub  />
-                Sign in with Github
-              </Button>
             </div>
           </form>
         </Form>

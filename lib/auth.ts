@@ -12,6 +12,9 @@ export const auth = betterAuth({
     enabled: true,
   },
 
+  trustedOrigins: [
+    "http://localhost:3000"
+  ],
   // backend zod validation on hooks
   // hooks er kahini hocce backend a check korar jonno mane zod schema backend a use korar jonno hooks abong safeParse use kora lage
 

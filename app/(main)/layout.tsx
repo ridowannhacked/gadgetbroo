@@ -1,17 +1,18 @@
-// app/(main)/layout.tsx
+// app/(main)/layout.tsx — Server Component
 import { getServerSession } from "@/helpers/get-servesession";
-import { UserStoreHydrator } from "@/components/UserStoreHydrator";
+import { AuthSessionProvider } from "@/components/auth/AuthSessionProvider";
 import Navbar from "@/components/navbar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession();
-  const user = session?.user ?? null;
 
   return (
-    <>
-      <UserStoreHydrator user={user} />
+    <AuthSessionProvider
+      user={session?.user ?? null}
+      session={session?.session ?? null}
+    >
       <Navbar />
       <main>{children}</main>
-    </>
+    </AuthSessionProvider>
   );
 }
