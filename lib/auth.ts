@@ -15,13 +15,16 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
     ipAddress: {
-      trustedProxies: ["127.0.0.1", "::1"],
+      trustedProxies: ["127.0.0.1", "::1", "0.0.0.0"],
       ipAddressHeaders: ["x-forwarded-for", "x-real-ip"],
     },
   },
 
+  trustHost: process.env.NODE_ENV === "production",
   trustedOrigins: [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://dev.gadgetbroo.com",
+    "http://dev.gadgetbroo.com"
   ],
   // backend zod validation on hooks
   // hooks er kahini hocce backend a check korar jonno mane zod schema backend a use korar jonno hooks abong safeParse use kora lage
