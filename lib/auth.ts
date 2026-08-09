@@ -20,7 +20,6 @@ export const auth = betterAuth({
     },
   },
 
-  trustHost: process.env.NODE_ENV === "production",
   trustedOrigins: [
     "http://localhost:3000",
     "https://dev.gadgetbroo.com",
