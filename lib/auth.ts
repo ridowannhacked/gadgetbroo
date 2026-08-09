@@ -12,6 +12,14 @@ export const auth = betterAuth({
     enabled: true,
   },
 
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+    ipAddress: {
+      trustedProxies: ["127.0.0.1", "::1"],
+      ipAddressHeaders: ["x-forwarded-for", "x-real-ip"],
+    },
+  },
+
   trustedOrigins: [
     "http://localhost:3000"
   ],
