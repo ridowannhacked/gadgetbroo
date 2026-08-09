@@ -3,22 +3,24 @@
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useCart } from "@/store/useCart";
-import { Check, ShoppingCart, Truck, ShieldCheck, Play, ArrowLeft, Minus, Plus, Star, Loader2, User } from "lucide-react";
+import { Check, ShoppingCart, Truck, ShieldCheck, Play, ArrowLeft, Minus, Plus, Star, Loader2, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { format } from "date-fns";
 
-export default function ProductDetailsClient({ 
-  product, 
-  reviews = [], 
-  canReview = false 
-}: { 
-  product: any, 
-  reviews?: any[], 
-  canReview?: boolean 
+export default function ProductDetailsClient({
+  product,
+  reviews = [],
+  canReview = false,
+  relatedProducts = []
+}: {
+  product: any,
+  reviews?: any[],
+  canReview?: boolean,
+  relatedProducts?: any[]
 }) {
   const { addItem } = useCart();
-  
+
   // Sort images so primary is first, or fallback to first uploaded
   const sortedImages = useMemo(() => {
     const arr = [...product.images];
@@ -39,15 +41,52 @@ export default function ProductDetailsClient({
   const [selectedColor, setSelectedColor] = useState<string | null>(availableColors[0] || null);
   const [selectedSize, setSelectedSize] = useState<string | null>(availableSizes[0] || null);
   const [selectedStorage, setSelectedStorage] = useState<string | null>(availableStorages[0] || null);
-  
+
   const [quantity, setQuantity] = useState<number>(1);
-  
+
+  // Safe selection handlers to prevent invalid combinations
+  const handleSelectColor = (color: string) => {
+    setSelectedColor(color);
+    const exists = product.variants.find((v: any) => v.color === color && v.size === selectedSize && v.storage === selectedStorage);
+    if (!exists) {
+      const valid = product.variants.find((v: any) => v.color === color);
+      if (valid) {
+        if (valid.size) setSelectedSize(valid.size);
+        if (valid.storage) setSelectedStorage(valid.storage);
+      }
+    }
+  };
+
+  const handleSelectSize = (size: string) => {
+    setSelectedSize(size);
+    const exists = product.variants.find((v: any) => v.color === selectedColor && v.size === size && v.storage === selectedStorage);
+    if (!exists) {
+      const valid = product.variants.find((v: any) => v.size === size);
+      if (valid) {
+        if (valid.color) setSelectedColor(valid.color);
+        if (valid.storage) setSelectedStorage(valid.storage);
+      }
+    }
+  };
+
+  const handleSelectStorage = (storage: string) => {
+    setSelectedStorage(storage);
+    const exists = product.variants.find((v: any) => v.color === selectedColor && v.size === selectedSize && v.storage === storage);
+    if (!exists) {
+      const valid = product.variants.find((v: any) => v.storage === storage);
+      if (valid) {
+        if (valid.color) setSelectedColor(valid.color);
+        if (valid.size) setSelectedSize(valid.size);
+      }
+    }
+  };
+
   // Review form states
   const [rating, setRating] = useState(5);
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewContent, setReviewContent] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  
+
   const [localReviews, setLocalReviews] = useState(reviews);
   const [localCanReview, setLocalCanReview] = useState(canReview);
 
@@ -82,7 +121,7 @@ export default function ProductDetailsClient({
     }
 
     const imageUrl = sortedImages[0]?.mediaFile.url || "";
-    
+
     // Construct variant name
     const variantNameParts = [];
     if (displayVariant.color) variantNameParts.push(displayVariant.color);
@@ -100,7 +139,7 @@ export default function ProductDetailsClient({
       stock: displayVariant.stock,
       quantity: quantity,
     });
-    
+
     toast.success(`Added ${quantity} item(s) to cart!`);
   };
 
@@ -110,7 +149,7 @@ export default function ProductDetailsClient({
       toast.error("Please enter a review.");
       return;
     }
-    
+
     setIsSubmittingReview(true);
     try {
       const res = await fetch("/api/reviews", {
@@ -123,16 +162,16 @@ export default function ProductDetailsClient({
           content: reviewContent
         })
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.error || "Failed to submit review");
       }
-      
+
       toast.success("Thank you! Your review has been submitted.");
       setLocalCanReview(false);
-      
+
       // Optimistically add to list
       setLocalReviews([
         {
@@ -145,7 +184,7 @@ export default function ProductDetailsClient({
         },
         ...localReviews
       ]);
-      
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -165,7 +204,7 @@ export default function ProductDetailsClient({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16">
-        
+
         {/* Left Column: Image/Video Gallery */}
         <div className="flex flex-col-reverse lg:flex-row gap-4 h-fit static lg:sticky lg:top-24 z-10">
           {/* Thumbnail Strip */}
@@ -173,14 +212,13 @@ export default function ProductDetailsClient({
             {sortedImages.map((img: any, idx: number) => {
               const isActive = activeMedia?.id === img.id;
               const isVideo = img.mediaFile.fileType === "video";
-              
+
               return (
                 <button
                   key={img.id}
                   onClick={() => setActiveMedia(img)}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-black ${
-                    isActive ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-800 hover:border-slate-600"
-                  }`}
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-black ${isActive ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-800 hover:border-slate-600"
+                    }`}
                 >
                   {isVideo ? (
                     <div className="w-full h-full flex items-center justify-center bg-slate-900 relative">
@@ -189,10 +227,10 @@ export default function ProductDetailsClient({
                     </div>
                   ) : (
                     <Image
-                      src={`${img.mediaFile.url}${img.mediaFile.url.includes("?") ? "&" : "?"}tr=w-150`}
+                      src={img.mediaFile.url}
                       alt={`Thumbnail ${idx}`}
                       fill
-                      unoptimized={true}
+                      sizes="80px"
                       className="object-cover"
                     />
                   )}
@@ -205,18 +243,18 @@ export default function ProductDetailsClient({
           <div className="relative w-full aspect-square lg:aspect-[4/5] bg-[#111318] rounded-3xl overflow-hidden border border-slate-800/60 shadow-2xl flex items-center justify-center">
             {activeMedia ? (
               activeMedia.mediaFile.fileType === "video" ? (
-                <video 
-                  src={activeMedia.mediaFile.url} 
+                <video
+                  src={activeMedia.mediaFile.url}
                   controls
                   autoPlay
                   className="w-full h-full object-contain"
                 />
               ) : (
                 <Image
-                  src={`${activeMedia.mediaFile.url}${activeMedia.mediaFile.url.includes("?") ? "&" : "?"}tr=w-1200`}
+                  src={activeMedia.mediaFile.url}
                   alt={product.name}
                   fill
-                  unoptimized={true}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-contain p-2 sm:p-8"
                   priority
                 />
@@ -224,7 +262,7 @@ export default function ProductDetailsClient({
             ) : (
               <div className="text-slate-600 font-medium">No Image Available</div>
             )}
-            
+
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2">
               {product.isFeatured && (
@@ -245,7 +283,7 @@ export default function ProductDetailsClient({
             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
               {product.name}
             </h1>
-            
+
             <div className="flex items-center gap-4">
               <div className="text-3xl font-bold text-white">
                 ৳{displayVariant.price.toLocaleString()}
@@ -276,12 +314,11 @@ export default function ProductDetailsClient({
                   {availableColors.map(color => (
                     <button
                       key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
-                        selectedColor === color 
-                          ? "border-blue-500 bg-blue-500/10 text-white" 
-                          : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
-                      }`}
+                      onClick={() => handleSelectColor(color)}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${selectedColor === color
+                        ? "border-blue-500 bg-blue-500/10 text-white"
+                        : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
+                        }`}
                     >
                       {color}
                     </button>
@@ -299,12 +336,11 @@ export default function ProductDetailsClient({
                   {availableSizes.map(size => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
-                        selectedSize === size 
-                          ? "border-white bg-white text-black" 
-                          : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
-                      }`}
+                      onClick={() => handleSelectSize(size)}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${selectedSize === size
+                        ? "border-white bg-white text-black"
+                        : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
+                        }`}
                     >
                       {size}
                     </button>
@@ -322,12 +358,11 @@ export default function ProductDetailsClient({
                   {availableStorages.map(storage => (
                     <button
                       key={storage}
-                      onClick={() => setSelectedStorage(storage)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
-                        selectedStorage === storage 
-                          ? "border-white bg-white text-black" 
-                          : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
-                      }`}
+                      onClick={() => handleSelectStorage(storage)}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${selectedStorage === storage
+                        ? "border-white bg-white text-black"
+                        : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
+                        }`}
                     >
                       {storage}
                     </button>
@@ -339,10 +374,10 @@ export default function ProductDetailsClient({
 
           {/* Action */}
           <div className="pt-4 flex flex-col sm:flex-row gap-4">
-            
+
             {/* Quantity Selector */}
             <div className="flex items-center justify-between border-2 border-slate-800 bg-[#111318] rounded-2xl p-2 w-full sm:w-32 flex-shrink-0">
-              <button 
+              <button
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
                 disabled={quantity <= 1}
                 className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
@@ -350,7 +385,7 @@ export default function ProductDetailsClient({
                 <Minus className="w-5 h-5" />
               </button>
               <span className="text-white font-semibold w-6 text-center">{quantity}</span>
-              <button 
+              <button
                 onClick={() => setQuantity(q => Math.min(displayVariant.stock, q + 1))}
                 disabled={quantity >= displayVariant.stock}
                 className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
@@ -397,10 +432,77 @@ export default function ProductDetailsClient({
         </div>
       </div>
 
+      {/* Related Products Section */}
+      {relatedProducts && relatedProducts.length > 0 && (
+        <div className="mt-16 lg:mt-24 border-t border-slate-800 pt-12">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+            <h2 className="text-2xl font-bold text-white tracking-tight">You Might Also Like</h2>
+            <Link
+              href={`/store?category=${product.category.slug}`}
+              className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+            >
+              View more from {product.category.name} <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
+            {relatedProducts.map((relatedProd) => {
+              const primaryImage = relatedProd.images[0]?.mediaFile.url || null;
+              const startingPrice = relatedProd.variants[0]?.price;
+
+              return (
+                <Link
+                  href={`/product/${relatedProd.slug}`}
+                  key={relatedProd.id}
+                  className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-3 sm:p-5 hover:border-slate-700 transition-colors"
+                >
+                  <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
+                    {primaryImage ? (
+                      <Image
+                        src={primaryImage}
+                        alt={relatedProd.name}
+                        fill
+                        sizes="(max-width: 640px) 50vw, 25vw"
+                        className="object-contain p-2 sm:p-4 group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="text-slate-700 text-xs">No Image</div>
+                    )}
+                    {relatedProd.isFeatured && (
+                      <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
+                        Featured
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col flex-grow">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] sm:text-xs text-slate-500">{relatedProd.brand}</span>
+                      <span className="text-[8px] sm:text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{relatedProd.category.name}</span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                      {relatedProd.name}
+                    </h3>
+
+                    <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between">
+                      <div className="text-base sm:text-lg font-bold text-slate-200">
+                        {startingPrice ? `৳${Number(startingPrice).toFixed(2)}` : 'TBA'}
+                      </div>
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                        <ArrowRight size={12} className="text-white sm:w-[14px] sm:h-[14px]" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {/* Reviews Section */}
       <div className="mt-16 lg:mt-24 border-t border-slate-800 pt-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
+
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">Customer Reviews</h2>
@@ -408,16 +510,16 @@ export default function ProductDetailsClient({
                 <div className="flex gap-0.5 text-amber-500">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} size={18} fill={
-                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length) 
+                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length)
                         ? "currentColor" : "none"
                     } className={
-                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length) 
+                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length)
                         ? "text-amber-500" : "text-slate-700"
                     } />
                   ))}
                 </div>
                 <span className="text-sm text-slate-400">
-                  {localReviews.length > 0 
+                  {localReviews.length > 0
                     ? `Based on ${localReviews.length} review${localReviews.length === 1 ? '' : 's'}`
                     : "No reviews yet"}
                 </span>
@@ -438,16 +540,16 @@ export default function ProductDetailsClient({
                           onClick={() => setRating(star)}
                           className="p-1 transition-colors"
                         >
-                          <Star 
-                            size={24} 
-                            fill={star <= rating ? "currentColor" : "none"} 
-                            className={star <= rating ? "text-amber-500" : "text-slate-700 hover:text-slate-500"} 
+                          <Star
+                            size={24}
+                            fill={star <= rating ? "currentColor" : "none"}
+                            className={star <= rating ? "text-amber-500" : "text-slate-700 hover:text-slate-500"}
                           />
                         </button>
                       ))}
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">Title (Optional)</label>
                     <input
@@ -481,7 +583,7 @@ export default function ProductDetailsClient({
                 </form>
               </div>
             )}
-            
+
             {!localCanReview && (
               <div className="bg-[#111318]/50 border border-slate-800/50 rounded-2xl p-5 text-sm text-slate-400 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
@@ -521,11 +623,11 @@ export default function ProductDetailsClient({
                       </div>
                       <div className="flex gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star 
-                            key={i} 
-                            size={14} 
-                            fill={i < review.rating ? "currentColor" : "none"} 
-                            className={i < review.rating ? "text-amber-500" : "text-slate-700"} 
+                          <Star
+                            key={i}
+                            size={14}
+                            fill={i < review.rating ? "currentColor" : "none"}
+                            className={i < review.rating ? "text-amber-500" : "text-slate-700"}
                           />
                         ))}
                       </div>
@@ -544,6 +646,7 @@ export default function ProductDetailsClient({
 
         </div>
       </div>
+
     </div>
   );
 }

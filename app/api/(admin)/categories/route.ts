@@ -1,25 +1,12 @@
 // app/api/(admin)/categories/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "../../../../lib/auth";
 import prisma from "../../../../lib/prisma";
+import { checkPermission } from "../../../../lib/rbac";
 import { createCategorySchema } from "../../../../zodSchemas/categorySchema";
-
-async function checkPermission(action: "canView" | "canCreate" | "canUpdate" | "canDelete") {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { role: { include: { permissions: true } } },
-  });
-  if (user?.role?.name === "admin") return session;
-  const hasPerm = user?.role?.permissions.some(p => p.resource === "Categories" && p[action] === true);
-  return hasPerm ? session : null;
-}
 
 export async function GET() {
   try {
-    const session = await checkPermission("canView");
+    const session = await checkPermission("Categories", "canView");
     if (!session) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -40,7 +27,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await checkPermission("canCreate");
+    const session = await checkPermission("Categories", "canCreate");
     if (!session) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

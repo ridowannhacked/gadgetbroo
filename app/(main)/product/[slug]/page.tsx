@@ -102,6 +102,31 @@ export default async function ProductPage({ params }: ProductPageProps) {
     );
   }
 
+  // Fetch related products (same category, excluding this one)
+  const relatedProducts = await prisma.product.findMany({
+    where: {
+      categoryId: product.categoryId,
+      id: { not: product.id },
+      isActive: true,
+      isDeleted: false,
+    },
+    take: 4,
+    include: {
+      category: true,
+      images: {
+        where: { isPrimary: true },
+        include: { mediaFile: true },
+        take: 1
+      },
+      variants: {
+        where: { isActive: true, isDeleted: false },
+        orderBy: { price: 'asc' },
+        take: 1
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
   // Sanitize the product object to pass to client
   // Passing direct Prisma Decimal objects to Client Components can cause warnings, so we map them to numbers
   const serializedProduct = {
@@ -112,12 +137,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }))
   };
 
+  const serializedRelatedProducts = relatedProducts.map(rp => ({
+    ...rp,
+    variants: rp.variants.map((v) => ({
+      ...v,
+      price: Number(v.price),
+    }))
+  }));
+
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-200">
       <ProductDetailsClient 
         product={serializedProduct} 
         reviews={reviews} 
         canReview={canReview} 
+        relatedProducts={serializedRelatedProducts}
       />
     </div>
   );

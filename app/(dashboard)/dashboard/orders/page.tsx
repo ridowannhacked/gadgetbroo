@@ -84,9 +84,9 @@ export default async function MyOrdersPage() {
                 <div className="space-y-4">
                   {order.items.map(item => (
                     <div key={item.id} className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-white rounded-lg overflow-hidden border border-slate-200 shrink-0 relative">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 border border-slate-700/50">
                         {item.imageSnapshot ? (
-                          <Image src={`${item.imageSnapshot}?tr=w-100`} alt={item.productName} fill className="object-contain p-1" unoptimized />
+                          <Image src={`${item.imageSnapshot}?tr=w-100`} alt={item.productName} fill className="object-contain p-1" />
                         ) : (
                           <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400"><Package size={20} /></div>
                         )}

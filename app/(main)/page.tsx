@@ -55,7 +55,7 @@ export default async function Home() {
     <div className="bg-[#0a0a0a] min-h-screen text-slate-200 selection:bg-blue-500/30 overflow-x-hidden">
 
       {/* Hero Section */}
-      <section className="relative h-[70vh] w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-[45vh] md:h-[60vh] lg:h-[70vh] w-full flex items-center justify-center overflow-hidden">
         
         {/* The new interactive Slider handles the backgrounds and the content logic */}
         <HeroSlider banners={heroBanners.map(b => ({ id: b.id, title: b.title, url: b.url, linkUrl: b.linkUrl }))} />
@@ -92,7 +92,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
           {recentProducts.map((product) => {
             const primaryImage = product.images[0]?.mediaFile.url || null;
             const startingPrice = product.variants[0]?.price;
@@ -101,21 +101,21 @@ export default async function Home() {
               <Link 
                 href={`/product/${product.slug}`} 
                 key={product.id}
-                className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-5 hover:border-slate-700 transition-colors"
+                className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-3 sm:p-5 hover:border-slate-700 transition-colors"
               >
-                <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-6 overflow-hidden relative">
+                <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
                   {primaryImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img 
                       src={`${primaryImage}${primaryImage.includes("?") ? "&" : "?"}tr=w-400`} 
                       alt={product.name} 
-                      className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-contain p-2 sm:p-4 group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
                     <div className="text-slate-700">No Image</div>
                   )}
                   {product.isFeatured && (
-                    <span className="absolute top-3 left-3 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
+                    <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
                       Featured
                     </span>
                   )}
@@ -123,19 +123,19 @@ export default async function Home() {
                 
                 <div className="flex flex-col flex-grow">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-slate-500">{product.brand}</span>
-                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{product.category.name}</span>
+                    <span className="text-[10px] sm:text-xs text-slate-500">{product.brand}</span>
+                    <span className="text-[8px] sm:text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{product.category.name}</span>
                   </div>
-                  <h3 className="text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
                     {product.name}
                   </h3>
                   
-                  <div className="mt-auto pt-4 flex items-center justify-between">
-                    <div className="text-lg font-bold text-slate-200">
+                  <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between">
+                    <div className="text-base sm:text-lg font-bold text-slate-200">
                       {startingPrice ? `৳${Number(startingPrice).toFixed(2)}` : 'TBA'}
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                      <ArrowRight size={14} className="text-white" />
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                      <ArrowRight size={12} className="text-white sm:w-[14px] sm:h-[14px]" />
                     </div>
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default async function Home() {
                 <Link 
                   href={`/store#${category.slug}`} 
                   key={`${category.id}-${index}`}
-                  className="relative w-64 h-80 shrink-0 rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20"
+                  className="relative w-44 h-56 sm:w-64 sm:h-80 shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20"
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10" />
                   
@@ -184,12 +184,12 @@ export default async function Home() {
                     <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">No Image</div>
                   )}
                   
-                  <div className="absolute bottom-0 left-0 p-6 z-20 w-full">
-                    <h3 className="text-xl font-bold text-white mb-2">{category.name}</h3>
+                  <div className="absolute bottom-0 left-0 p-4 sm:p-6 z-20 w-full">
+                    <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{category.name}</h3>
                     <div className="w-full flex items-center justify-between">
-                      <span className="text-xs text-blue-400">View Collection</span>
-                      <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
-                        <ArrowRight size={14} />
+                      <span className="text-[10px] sm:text-xs text-blue-400">View Collection</span>
+                      <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+                        <ArrowRight size={12} className="sm:w-[14px] sm:h-[14px]" />
                       </span>
                     </div>
                   </div>

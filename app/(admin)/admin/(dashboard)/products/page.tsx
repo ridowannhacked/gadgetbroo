@@ -40,6 +40,8 @@ export default function ProductsPage() {
   const [featured, setFeatured] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Fetch categories for the filter dropdown
   useEffect(() => {
@@ -59,17 +61,26 @@ export default function ProductsPage() {
       if (activeTab !== "all") params.set("stock", activeTab);
       params.set("sortBy", sortBy);
       params.set("sortDir", sortDir);
+      params.set("page", page.toString());
+      params.set("limit", "10");
 
       const res = await fetch(`/api/products?${params}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setProducts(data);
+      
+      if (Array.isArray(data)) {
+         // Fallback in case backend hasn't deployed or returned old format
+         setProducts(data);
+      } else {
+         setProducts(data.products || []);
+         setTotalPages(data.totalPages || 1);
+      }
     } catch {
       toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
-  }, [search, categoryId, featured, activeTab, sortBy, sortDir]);
+  }, [search, categoryId, featured, activeTab, sortBy, sortDir, page]);
 
   useEffect(() => {
     fetchProducts();
@@ -112,7 +123,7 @@ export default function ProductsPage() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 placeholder="Search by name or slug..."
                 className="w-full bg-[#161a22] border border-slate-800 text-slate-200 text-sm rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-slate-700 transition-colors placeholder:text-slate-500"
               />
@@ -121,7 +132,7 @@ export default function ProductsPage() {
             <div className="relative min-w-[150px]">
               <select
                 value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
+                onChange={(e) => { setCategoryId(e.target.value); setPage(1); }}
                 className="w-full bg-[#161a22] border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2.5 pr-8 appearance-none outline-none focus:border-slate-700 cursor-pointer"
               >
                 <option value="">All Categories</option>
@@ -135,7 +146,7 @@ export default function ProductsPage() {
             <div className="relative min-w-[140px]">
               <select
                 value={featured}
-                onChange={(e) => setFeatured(e.target.value)}
+                onChange={(e) => { setFeatured(e.target.value); setPage(1); }}
                 className="w-full bg-[#161a22] border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2.5 pr-8 appearance-none outline-none focus:border-slate-700 cursor-pointer"
               >
                 <option value="">All Products</option>
@@ -172,7 +183,7 @@ export default function ProductsPage() {
               {(["all", "in", "low", "out"] as const).map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => { setActiveTab(tab); setPage(1); }}
                   className={`transition-colors font-medium ${activeTab === tab ? "text-sky-400" : "text-slate-400 hover:text-slate-200"}`}
                 >
                   {tab === "all" ? "All" : tab === "in" ? "In Stock" : tab === "low" ? "Low Stock (≤5)" : "Out of Stock"}
@@ -236,7 +247,6 @@ export default function ProductsPage() {
                                 alt={product.images[0]?.mediaFile?.name ?? product.name}
                                 width={48}
                                 height={48}
-                                unoptimized={true}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
@@ -304,7 +314,6 @@ export default function ProductsPage() {
                         src={`${product.images[0]?.mediaFile?.url}${product.images[0]?.mediaFile?.url.includes("?") ? "&" : "?"}tr=w-400`}
                         alt={product.name}
                         fill
-                        unoptimized={true}
                         className="object-cover"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
@@ -330,6 +339,35 @@ export default function ProductsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-6 border-t border-slate-800/60 mt-4">
+              <span className="text-sm text-slate-400">
+                Page {page} of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="bg-[#161a22] border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="bg-[#161a22] border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </div>

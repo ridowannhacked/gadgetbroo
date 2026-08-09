@@ -146,7 +146,7 @@ export default async function StorePage(props: {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                     {category.products.map((product) => {
                       const primaryImage = product.images[0]?.mediaFile.url || null;
                       const startingPrice = product.variants[0]?.price;
@@ -155,40 +155,40 @@ export default async function StorePage(props: {
                         <Link 
                           href={`/product/${product.slug}`} 
                           key={product.id}
-                          className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-5 hover:border-slate-700 transition-colors"
+                          className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-3 sm:p-5 hover:border-slate-700 transition-colors"
                         >
-                          <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-6 overflow-hidden relative">
+                          <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
                             {primaryImage ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img 
                                 src={`${primaryImage}${primaryImage.includes("?") ? "&" : "?"}tr=w-400`} 
                                 alt={product.name} 
-                                className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+                                className="w-full h-full object-contain p-2 sm:p-4 group-hover:scale-110 transition-transform duration-500"
                               />
                             ) : (
                               <div className="text-slate-700">No Image</div>
                             )}
                             {product.isFeatured && (
-                              <span className="absolute top-3 left-3 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
+                              <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
                                 Featured
                               </span>
                             )}
                           </div>
                           
                           <div className="flex flex-col flex-grow">
-                            <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                            <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 mb-1">
                               <span>{product.brand}</span>
                             </div>
-                            <h3 className="text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                            <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
                               {product.name}
                             </h3>
                             
-                            <div className="mt-auto pt-4 flex items-center justify-between">
-                              <div className="text-lg font-bold text-slate-200">
+                            <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between">
+                              <div className="text-base sm:text-lg font-bold text-slate-200">
                                 {startingPrice ? `৳${Number(startingPrice).toFixed(2)}` : 'TBA'}
                               </div>
-                              <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                                <ArrowRight size={14} className="text-white" />
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                                <ArrowRight size={12} className="text-white sm:w-[14px] sm:h-[14px]" />
                               </div>
                             </div>
                           </div>

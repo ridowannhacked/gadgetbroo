@@ -57,10 +57,10 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
         {banners.map((banner, index) => (
           <Image
             key={banner.id}
-            src={`${banner.url}?tr=w-1920`}
+            src={banner.url}
             alt={banner.title}
             fill
-            className={`object-cover transition-opacity duration-700 ease-in-out ${
+            className={`object-cover object-center transition-opacity duration-700 ease-in-out ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
             priority={index === 0}

@@ -403,7 +403,7 @@ export default function EditProductPage() {
                 {uploadedMedia.map((item, index) => (
                   <div key={item.fileId} className={`relative rounded-lg overflow-hidden border-2 transition-colors ${item.isPrimary ? "border-sky-500" : "border-slate-700"}`}>
                     {item.mediaType === "image" ? (
-                      <Image src={`${item.url}${item.url.includes("?") ? "&" : "?"}tr=w-400`} alt={item.name} width={200} height={200} unoptimized={true} className="w-full h-32 object-cover" />
+                      <Image src={`${item.url}${item.url.includes("?") ? "&" : "?"}tr=w-400`} alt={item.name} width={200} height={200} className="w-full h-32 object-cover" />
                     ) : (
                       <video src={item.url} className="w-full h-32 object-cover bg-black" muted playsInline />
                     )}

@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import prisma from "../../../../lib/prisma";
 import { auth, User } from "../../../../lib/auth";
-import { authClient } from "../../../../lib/auth-client";
 import { CreateUserSchema } from "../../../../zodSchemas/createUserSchema";
+import { requireAdmin } from "../../../../lib/rbac";
 
 export async function GET() {
 
   try {
-    // Check session
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    // Check role
-    const fullUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { role: true },
-    });
-
-    if (fullUser?.role?.name !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const session = await requireAdmin();
+    if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const allUsers = await prisma.user.findMany({
       include: {
@@ -44,19 +32,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Check session
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    // Check role
-    const fullUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { role: true },
-    });
-
-    if (fullUser?.role?.name !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const session = await requireAdmin();
+    if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const reqData = await request.json()
 

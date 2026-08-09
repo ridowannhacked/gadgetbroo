@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
+import { requireAdmin } from "@/lib/rbac";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
@@ -15,17 +15,8 @@ const profileSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const userRecord = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { role: true },
-    });
-
-    if (userRecord?.role?.name !== "admin") {
-      return NextResponse.json({ error: "Forbidden: Only the admin can update their profile." }, { status: 403 });
-    }
+    const session = await requireAdmin();
+    if (!session) return NextResponse.json({ error: "Forbidden: Only the admin can update their profile." }, { status: 403 });
 
     const body = await request.json();
     const parsed = profileSchema.safeParse(body);
@@ -73,7 +64,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: "No password set for this account (OAuth user)" }, { status: 400 });
       }
 
-      const isValid = await verifyPassword(currentPassword, account.password);
+      const isValid = await verifyPassword({ hash: account.password, password: currentPassword });
       if (!isValid) return NextResponse.json({ error: "Incorrect current password" }, { status: 400 });
 
       const hashed = await hashPassword(newPassword);

@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "../../../../../lib/auth";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/rbac";
 import { revalidatePath } from "next/cache";
-
-async function checkAdmin() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { role: true },
-  });
-  if (user?.role?.name === "admin") return session;
-  return null;
-}
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await checkAdmin();
+    const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
@@ -39,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await checkAdmin();
+    const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;

@@ -194,7 +194,6 @@ export default function MediaPage() {
                         src={`${file.url}${file.url.includes("?") ? "&" : "?"}tr=w-400`}
                         alt={file.name}
                         fill
-                        unoptimized={true}
                         className="object-cover"
                         sizes="(max-width: 640px) 50vw, 20vw"
                       />

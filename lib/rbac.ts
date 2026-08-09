@@ -23,3 +23,20 @@ export async function checkPermission(resource: string, action: PermissionAction
   
   return hasPerm ? session : null;
 }
+
+/**
+ * Validates that the current user is at least an Admin.
+ * Returns the session if true, null if false.
+ */
+export async function requireAdmin() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: { role: true },
+  });
+
+  if (user?.role?.name === "admin") return session;
+  return null;
+}

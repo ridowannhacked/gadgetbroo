@@ -1,24 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "../../../../lib/auth";
 import prisma from "../../../../lib/prisma";
+import { requireAdmin } from "../../../../lib/rbac";
 import { revalidatePath } from "next/cache";
-
-// Basic auth check for admin routes
-async function checkAdmin() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { role: true },
-  });
-  if (user?.role?.name === "admin") return session;
-  return null;
-}
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await checkAdmin();
+    const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const banners = await prisma.siteMedia.findMany({
@@ -34,7 +21,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await checkAdmin();
+    const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await request.json();

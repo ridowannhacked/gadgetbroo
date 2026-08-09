@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "../../../../../lib/auth";
 import prisma from "../../../../../lib/prisma";
 import ImageKit from "imagekit";
 import { updateProductSchema } from "../../../../../zodSchemas/productSchema";
+import { checkPermission } from "../../../../../lib/rbac";
 
 const imagekit = new ImageKit({
   publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!,
@@ -11,24 +10,12 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!,
 });
 
-async function checkPermission(action: "canView" | "canCreate" | "canUpdate" | "canDelete") {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { role: { include: { permissions: true } } },
-  });
-  if (user?.role?.name === "admin") return session;
-  const hasPerm = user?.role?.permissions.some(p => p.resource === "Products" && p[action] === true);
-  return hasPerm ? session : null;
-}
-
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await checkPermission("canView");
+    const session = await checkPermission("Products", "canView");
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
@@ -55,7 +42,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await checkPermission("canUpdate");
+    const session = await checkPermission("Products", "canUpdate");
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
@@ -129,7 +116,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await checkPermission("canDelete");
+    const session = await checkPermission("Products", "canDelete");
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
