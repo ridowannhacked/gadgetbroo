@@ -9,21 +9,23 @@ export PATH="$PATH:/www/server/nodejs/v22.17.1/bin"
 ROOT="/www/wwwroot/dev.gadgetbroo.com"
 PORT=3000
 
+# Must match the app name/ID shown by `pm2 list` (or in aaPanel's
+# Website > Node Project page) for this project. Verify this on the
+# server before your first CI/CD run — deploy.sh can't detect it for you.
+PM2_APP_NAME="gadgetbroo"
+
 echo "==> Install dependencies, generate Prisma client, run migrations, and build"
 cd "$ROOT"
 
 npm ci
 npx prisma generate
 npx prisma migrate deploy
-npm run build
+npm run build   # also copies public/ and .next/static into .next/standalone
 
-echo "==> Restarting on port $PORT"
-# Kill whatever is currently running on the port
-fuser -k "${PORT}/tcp" >/dev/null 2>&1 || true
-sleep 2
-
-# Background the process properly using www user (aaPanel standard)
-su -s /bin/bash www -c "cd '$ROOT' && export PATH=\"\$PATH:/www/server/nodejs/v22.17.1/bin\" PORT=$PORT && (setsid nohup npm run start >> /www/wwwlogs/gadgetbroo.log 2>&1 < /dev/null &) >/dev/null 2>&1"
+echo "==> Restarting via PM2 ($PM2_APP_NAME)"
+# aaPanel's Node Project manager runs PM2 as the "www" user — restart
+# through that same user so it finds the right PM2 daemon/process.
+su -s /bin/bash www -c "export PATH=\"\$PATH:/www/server/nodejs/v22.17.1/bin\" && pm2 restart '$PM2_APP_NAME' --update-env"
 
 sleep 3
 echo "==> Health check"
