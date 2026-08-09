@@ -2,6 +2,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ArrowRight, Search, SlidersHorizontal, Tag } from "lucide-react";
 import StoreSearch from "@/components/storefront/StoreSearch";
+import { safeQuery } from "@/lib/safe-query";
 
 export const revalidate = 3600;
 
@@ -11,51 +12,59 @@ export default async function StorePage(props: {
   const searchParams = await props.searchParams;
   const categoryParam = searchParams.category as string | undefined;
   const searchQuery = searchParams.search as string | undefined;
-  
+
   // Fetch all active categories for the sidebar
-  const allCategories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { name: 'asc' },
-  });
+  // safeQuery falls back to [] instead of failing the whole page (and, at
+  // build time, the whole `next build`) if the DB is briefly unreachable.
+  const allCategories = await safeQuery(
+    prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    }),
+    []
+  );
 
   // Fetch categorized products based on filters
-  const categories = await prisma.category.findMany({
-    where: { 
-      isActive: true,
-      ...(categoryParam ? { slug: categoryParam } : {}),
-      ...(searchQuery ? {
-        OR: [
-          { name: { contains: searchQuery, mode: 'insensitive' } },
-          { products: { some: { name: { contains: searchQuery, mode: 'insensitive' } } } }
-        ]
-      } : {})
-    },
-    include: {
-      products: {
-        where: { 
-          isActive: true, 
-          isDeleted: false,
-          ...(searchQuery ? { name: { contains: searchQuery, mode: 'insensitive' } } : {})
-        },
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: {
-          images: {
-            where: { isPrimary: true },
-            include: { mediaFile: true },
-            take: 1
+  const categories = await safeQuery(
+    prisma.category.findMany({
+      where: {
+        isActive: true,
+        ...(categoryParam ? { slug: categoryParam } : {}),
+        ...(searchQuery ? {
+          OR: [
+            { name: { contains: searchQuery, mode: 'insensitive' } },
+            { products: { some: { name: { contains: searchQuery, mode: 'insensitive' } } } }
+          ]
+        } : {})
+      },
+      include: {
+        products: {
+          where: {
+            isActive: true,
+            isDeleted: false,
+            ...(searchQuery ? { name: { contains: searchQuery, mode: 'insensitive' } } : {})
           },
-          variants: {
-            where: { isActive: true, isDeleted: false },
-            orderBy: { price: 'asc' },
-            take: 1
-          },
-          category: true
+          take: 10,
+          orderBy: { createdAt: "desc" },
+          include: {
+            images: {
+              where: { isPrimary: true },
+              include: { mediaFile: true },
+              take: 1
+            },
+            variants: {
+              where: { isActive: true, isDeleted: false },
+              orderBy: { price: 'asc' },
+              take: 1
+            },
+            category: true
+          }
         }
-      }
-    },
-    orderBy: { name: 'asc' }
-  });
+      },
+      orderBy: { name: 'asc' }
+    }),
+    []
+  );
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-200">
