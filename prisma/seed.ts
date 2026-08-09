@@ -1,5 +1,5 @@
 // prisma/seed.ts
-import { auth } from "../lib/auth";
+import { hashPassword } from "better-auth/crypto";
 import prisma from "../lib/prisma";
 
 
@@ -25,22 +25,33 @@ async function main() {
   });
 
   if (!existing) {
-    // Use Better Auth's signup API which handles password hashing internally
-    const createdUser = await auth.api.signUpEmail({
-      body: {
+    const hashedPassword = await hashPassword("Admin@1234!");
+    
+    // Create User directly in DB to bypass API header requirements
+    const user = await prisma.user.create({
+      data: {
+        id: "admin-user",
         name: "Admin",
         email: "admin@gadgetbroo.com",
-        password: "Admin@1234!",
-      },
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roleId: adminRole.id
+      }
     });
 
-    // Override the "customer" role (assigned by after hook) to admin
-    if (createdUser?.user?.id) {
-      await prisma.user.update({
-        where: { id: createdUser.user.id },
-        data: { roleId: adminRole.id },
-      });
-    }
+    // Create corresponding credential account
+    await prisma.account.create({
+      data: {
+        id: "admin-account",
+        accountId: "admin-user",
+        providerId: "credential",
+        userId: user.id,
+        password: hashedPassword,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    });
 
     console.log("✓ Admin user seeded");
   } else {
