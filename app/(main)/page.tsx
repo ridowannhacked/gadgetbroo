@@ -2,51 +2,63 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ArrowRight, Search } from "lucide-react";
 import HeroSlider from "@/components/storefront/HeroSlider";
+import { safeQuery } from "@/lib/safe-query";
 
 // Force dynamic if needed, or rely on ISR/revalidation
 export const revalidate = 3600; // revalidate every hour
 
 export default async function Home() {
+  // safeQuery falls back to [] instead of failing the whole page (and, at
+  // build time, the whole `next build`) if the DB is briefly unreachable.
   const [categories, recentProducts, heroBanners] = await Promise.all([
-    prisma.category.findMany({
-      where: { isActive: true },
-      include: {
-        products: {
-          where: { isActive: true, isDeleted: false },
-          take: 1,
-          include: {
-            images: {
-              where: { isPrimary: true },
-              include: { mediaFile: true },
-              take: 1
+    safeQuery(
+      prisma.category.findMany({
+        where: { isActive: true },
+        include: {
+          products: {
+            where: { isActive: true, isDeleted: false },
+            take: 1,
+            include: {
+              images: {
+                where: { isPrimary: true },
+                include: { mediaFile: true },
+                take: 1
+              }
             }
           }
-        }
-      },
-      orderBy: { createdAt: "asc" }
-    }),
-    prisma.product.findMany({
-      where: { isActive: true, isDeleted: false },
-      take: 12,
-      orderBy: { createdAt: "desc" }, // or you could use a random approach if preferred, but desc is standard for "latest" mixed
-      include: {
-        category: true,
-        images: {
-          where: { isPrimary: true },
-          include: { mediaFile: true },
-          take: 1
         },
-        variants: {
-          where: { isActive: true, isDeleted: false },
-          orderBy: { price: 'asc' },
-          take: 1
+        orderBy: { createdAt: "asc" }
+      }),
+      []
+    ),
+    safeQuery(
+      prisma.product.findMany({
+        where: { isActive: true, isDeleted: false },
+        take: 12,
+        orderBy: { createdAt: "desc" }, // or you could use a random approach if preferred, but desc is standard for "latest" mixed
+        include: {
+          category: true,
+          images: {
+            where: { isPrimary: true },
+            include: { mediaFile: true },
+            take: 1
+          },
+          variants: {
+            where: { isActive: true, isDeleted: false },
+            orderBy: { price: 'asc' },
+            take: 1
+          }
         }
-      }
-    }),
-    prisma.siteMedia.findMany({
-      where: { isActive: true, placement: "HERO_SLIDER" },
-      orderBy: { sortOrder: "asc" }
-    })
+      }),
+      []
+    ),
+    safeQuery(
+      prisma.siteMedia.findMany({
+        where: { isActive: true, placement: "HERO_SLIDER" },
+        orderBy: { sortOrder: "asc" }
+      }),
+      []
+    )
   ]);
   // Duplicate categories array to make the infinite marquee scroll seamless
   const marqueeCategories = [...categories, ...categories, ...categories];

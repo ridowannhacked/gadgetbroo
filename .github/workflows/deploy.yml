@@ -1,33 +1,25 @@
-name: Deploy to Contabo VPS
+name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy using ssh
-        uses: appleboy/ssh-action@master
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }} # usually 22
-          script: |
-            # Navigate to the project directory on the server
-            # Note: You should update this path to where your project is stored on the VPS
-            cd /var/www/gadgetbroo
-            
-            # Pull the latest changes from the main branch
-            git pull origin main
-            
-            # Rebuild and restart the docker containers
-            docker compose down
-            docker compose build --no-cache
-            docker compose up -d
-            
-            # Remove old unused docker images to free up space
-            docker image prune -f
+          port: ${{ secrets.SERVER_PORT }}
+          script_stop: true
+          command_timeout: 20m
+          # The forced command= restriction on this key (see authorized_keys
+          # on the server) ignores whatever we send here and always runs
+          # /root/dev.gadgetbroo-deploy-entrypoint.sh instead. That entrypoint
+          # git-pulls first, then execs scripts/deploy.sh as a fresh process —
+          # see scripts/deploy.sh and AGENTS.md for why.
+          script: /root/dev.gadgetbroo-deploy-entrypoint.sh

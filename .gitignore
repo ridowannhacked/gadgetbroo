@@ -36,6 +36,14 @@ yarn-error.log*
 # vercel
 .vercel
 
+# ssh deploy keys — never commit these, generate on your own machine
+# and install the public half on the server. See scripts/deploy.sh.
+deploy_key
+deploy_key.pub
+*.pem
+id_ed25519*
+id_rsa*
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
