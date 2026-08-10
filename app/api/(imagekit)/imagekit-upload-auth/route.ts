@@ -1,4 +1,3 @@
-// app/api/(imagekit)/imagekit-upload-auth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import ImageKit from "imagekit";
 import { checkPermission } from "@/lib/rbac";
@@ -30,10 +29,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     // Only allow: image | video
     const type = searchParams.get("type") === "video" ? "video" : "image";
+    const envPrefix = process.env.NODE_ENV === "production" ? "/prod" : "/dev";
     const folder =
       type === "video"
-        ? "/gadgetbroo/products/videos"
-        : "/gadgetbroo/products/images";
+        ? '${envPrefix}/gadgetbroo/products/videos'
+        : '${envPrefix}/gadgetbroo/products/images';
 
     const authParams = imagekit.getAuthenticationParameters();
 
