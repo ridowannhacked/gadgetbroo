@@ -6,8 +6,10 @@ set -euo pipefail
 export PATH="$PATH:/www/server/nodejs/v22.17.1/bin"
 
 # Make sure this matches your project's root folder in aaPanel
-ROOT="/www/wwwroot/dev.gadgetbroo.com"
-PORT=3000
+# NOTE: aaPanel's Node Project creator nests the actual git checkout one
+# level deeper, inside a subfolder named after the project itself.
+ROOT="/www/wwwroot/dev.gadgetbroo.com/gadgetbroo"
+PORT=2222
 
 # Must match the app name/ID shown by `pm2 list` (or in aaPanel's
 # Website > Node Project page) for this project. Verify this on the
@@ -25,7 +27,10 @@ npm run build   # also copies public/ and .next/static into .next/standalone
 echo "==> Restarting via PM2 ($PM2_APP_NAME)"
 # aaPanel's Node Project manager runs PM2 as the "www" user — restart
 # through that same user so it finds the right PM2 daemon/process.
-su -s /bin/bash www -c "export PATH=\"\$PATH:/www/server/nodejs/v22.17.1/bin\" && pm2 restart '$PM2_APP_NAME' --update-env"
+# Falls back to `pm2 start` on the first-ever deploy, when the process
+# hasn't been registered with PM2 yet.
+su -s /bin/bash www -c "export PATH=\"\$PATH:/www/server/nodejs/v22.17.1/bin\" && (pm2 restart '$PM2_APP_NAME' --update-env || pm2 start server.js --name '$PM2_APP_NAME')"
+su -s /bin/bash www -c "pm2 save"
 
 sleep 3
 echo "==> Health check"
