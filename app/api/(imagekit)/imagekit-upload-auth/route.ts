@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
     const envPrefix = process.env.NODE_ENV === "production" ? "/prod" : "/dev";
     const folder =
       type === "video"
-        ? '${envPrefix}/gadgetbroo/products/videos'
-        : '${envPrefix}/gadgetbroo/products/images';
+        ? `${envPrefix}/gadgetbroo/products/videos`
+        : `${envPrefix}/gadgetbroo/products/images`;
 
     const authParams = imagekit.getAuthenticationParameters();
 
