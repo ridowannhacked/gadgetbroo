@@ -6,7 +6,9 @@ set -euo pipefail
 export PATH="$PATH:/www/server/nodejs/v22.17.1/bin"
 
 # Make sure this matches your project's root folder in aaPanel
-ROOT="/www/wwwroot/dev.gadgetbroo.com"
+# NOTE: aaPanel's Node Project creator nests the actual git checkout one
+# level deeper, inside a subfolder named after the project itself.
+ROOT="/www/wwwroot/dev.gadgetbroo.com/gadgetbroo"
 PORT=3000
 
 # Must match the app name/ID shown by `pm2 list` (or in aaPanel's
