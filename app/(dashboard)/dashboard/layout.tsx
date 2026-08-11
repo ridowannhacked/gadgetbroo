@@ -6,41 +6,47 @@ import LogoutButton from "../../../components/logoutUser";
 export default function CustomerDashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-200 font-sans">
-      <div className="max-w-[1200px] mx-auto px-4 py-8 sm:py-12 flex flex-col md:flex-row gap-8">
-        
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="bg-[#0b0f19] border border-slate-800/60 rounded-2xl p-4 sticky top-8">
-            <div className="mb-6 px-4">
-              <h2 className="text-lg font-bold text-white tracking-wider">
-                My Account
-              </h2>
-            </div>
-            <nav className="flex flex-col gap-1">
-              <Link 
-                href="/dashboard"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800/50 hover:text-white transition-colors"
-              >
-                <User size={18} className="text-blue-500" />
-                Profile
-              </Link>
-              <Link 
-                href="/dashboard/orders"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium hover:bg-slate-800/50 hover:text-white transition-colors"
-              >
-                <Package size={18} className="text-emerald-500" />
-                My Orders
-              </Link>
-              <div className="my-2 border-t border-slate-800/50" />
-              <div className="px-4 py-2">
-                <LogoutButton />
-              </div>
-            </nav>
+      {/* Top Navbar for Dashboard */}
+      <nav className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-sm">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 relative">
+          
+          {/* Left: Logo */}
+          <div className="flex flex-1 items-center">
+            <Link href="/dashboard" className="flex items-center gap-1 sm:gap-2 text-base sm:text-lg font-bold text-white tracking-wider">
+              My <span className="text-blue-500">Account</span>
+            </Link>
           </div>
-        </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 min-w-0">
+          {/* Center: Store Button */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Link 
+              href="/"
+              className="flex items-center gap-2 text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.3)] transition-all"
+            >
+              Go to Store
+            </Link>
+          </div>
+          
+          {/* Right: Orders & Logout */}
+          <div className="flex flex-1 items-center justify-end gap-3 sm:gap-6">
+            <Link 
+              href="/dashboard/orders"
+              className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            >
+              <Package size={18} className="text-emerald-500 shrink-0" />
+              <span className="hidden sm:inline">Orders</span>
+            </Link>
+            <div className="h-5 w-px bg-slate-800 shrink-0" />
+            <div className="shrink-0">
+              <LogoutButton />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="max-w-[1200px] mx-auto px-4 py-8 sm:py-12">
+        <main className="w-full">
           {children}
         </main>
       </div>
