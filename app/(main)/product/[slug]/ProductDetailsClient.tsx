@@ -7,6 +7,7 @@ import { Check, ShoppingCart, Truck, ShieldCheck, Play, ArrowLeft, Minus, Plus, 
 import { toast } from "sonner";
 import Link from "next/link";
 import { format } from "date-fns";
+import ProductCommentsClient from "@/components/storefront/ProductCommentsClient";
 
 export default function ProductDetailsClient({
   product,
@@ -646,6 +647,9 @@ export default function ProductDetailsClient({
 
         </div>
       </div>
+
+      {/* Q&A / Comments Section */}
+      <ProductCommentsClient productId={product.id} />
 
     </div>
   );

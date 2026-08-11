@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Package, ShoppingCart,
-  Tag, Image, Shield, Users, User, LogOut, X, Star, Truck
+  Tag, Image, Shield, Users, User, LogOut, X, Star, Truck, MessageSquare
 } from 'lucide-react';
 import { handleSignOut } from '../../helpers/signout';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { label: "Orders",    icon: ShoppingCart,    href: "/admin/orders",   resource: "Orders" },
   { label: "Shipping",  icon: Truck,           href: "/admin/shipping", resource: "Shipping" },
   { label: "Reviews",   icon: Star,            href: "/admin/reviews",  resource: "Reviews" },
+  { label: "Comments",  icon: MessageSquare,   href: "/admin/comments", resource: "Reviews" },
   { label: "Banners",   icon: Image,           href: "/admin/site-media", resource: null }, // Null means all admins can access
   { label: "Media",     icon: Image,           href: "/admin/media",    resource: "Media" },
   { label: "Users",     icon: Users,           href: "/admin/users",    resource: "Users" },

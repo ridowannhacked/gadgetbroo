@@ -69,7 +69,8 @@ export const ModelName = {
   Review: 'Review',
   SiteMedia: 'SiteMedia',
   AuditLog: 'AuditLog',
-  ShippingZone: 'ShippingZone'
+  ShippingZone: 'ShippingZone',
+  Comment: 'Comment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -375,6 +376,20 @@ export const ShippingZoneScalarFieldEnum = {
 } as const
 
 export type ShippingZoneScalarFieldEnum = (typeof ShippingZoneScalarFieldEnum)[keyof typeof ShippingZoneScalarFieldEnum]
+
+
+export const CommentScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  userId: 'userId',
+  body: 'body',
+  isPublic: 'isPublic',
+  adminReply: 'adminReply',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
 
 
 export const SortOrder = {

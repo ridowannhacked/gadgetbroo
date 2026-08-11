@@ -112,3 +112,8 @@ export type AuditLog = Prisma.AuditLogModel
  * 
  */
 export type ShippingZone = Prisma.ShippingZoneModel
+/**
+ * Model Comment
+ * 
+ */
+export type Comment = Prisma.CommentModel
