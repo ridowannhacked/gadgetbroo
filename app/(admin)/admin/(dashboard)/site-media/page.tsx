@@ -32,6 +32,10 @@ export default function SiteMediaAdminPage() {
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [selectedFile, setSelectedFile] = useState<MediaFileRecord | null>(null);
 
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
   const fetchBanners = async () => {
     setLoading(true);
     try {
@@ -45,10 +49,6 @@ export default function SiteMediaAdminPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchBanners();
-  }, []);
 
   const handleSave = async () => {
     if (!selectedFile || !newTitle) {

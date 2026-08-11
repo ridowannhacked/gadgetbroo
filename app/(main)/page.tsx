@@ -68,11 +68,25 @@ export default async function Home() {
 
       {/* Hero Section */}
       <section className="relative h-[45vh] md:h-[60vh] lg:h-[70vh] w-full flex items-center justify-center overflow-hidden">
-
+        
         {/* The new interactive Slider handles the backgrounds and the content logic */}
         <HeroSlider banners={heroBanners.map(b => ({ id: b.id, title: b.title, url: b.url, linkUrl: b.linkUrl }))} />
 
         {/* Global Search Bar (Positioned at bottom of hero) */}
+        <div className="absolute bottom-[24px] left-1/2 -translate-x-1/2 w-full max-w-2xl mx-auto px-4 z-20">
+          <form action="/store" method="GET" className="relative flex items-center w-full group">
+            <Search className="absolute left-6 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={20} />
+            <input 
+              type="text" 
+              name="search"
+              placeholder="Search for smartphones, laptops, accessories..." 
+              className="w-full bg-[#111318]/90 backdrop-blur-xl border border-slate-700/50 text-white placeholder:text-slate-400 rounded-full py-4 pl-14 pr-32 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-2xl"
+            />
+            <button type="submit" className="absolute right-2 bg-blue-600 text-white font-medium px-6 py-2.5 rounded-full hover:bg-blue-500 transition-colors">
+              Search
+            </button>
+          </form>
+        </div>
       </section>
 
       {/* Mixed Products Section */}
@@ -82,7 +96,7 @@ export default async function Home() {
             <h2 className="text-3xl font-bold text-white tracking-tight">Latest Arrivals</h2>
             <p className="text-slate-400 mt-2">Discover the newest technology added to our collection.</p>
           </div>
-          <Link
+          <Link 
             href="/store"
             className="bg-blue-600/10 border border-blue-500/30 text-blue-400 font-medium px-8 py-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
           >
@@ -96,17 +110,17 @@ export default async function Home() {
             const startingPrice = product.variants[0]?.price;
 
             return (
-              <Link
-                href={`/product/${product.slug}`}
+              <Link 
+                href={`/product/${product.slug}`} 
                 key={product.id}
                 className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-3 sm:p-5 hover:border-slate-700 transition-colors"
               >
                 <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
                   {primaryImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`${primaryImage}${primaryImage.includes("?") ? "&" : "?"}tr=w-400`}
-                      alt={product.name}
+                    <img 
+                      src={`${primaryImage}${primaryImage.includes("?") ? "&" : "?"}tr=w-400`} 
+                      alt={product.name} 
                       className="w-full h-full object-contain p-2 sm:p-4 group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
@@ -118,7 +132,7 @@ export default async function Home() {
                     </span>
                   )}
                 </div>
-
+                
                 <div className="flex flex-col flex-grow">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] sm:text-xs text-slate-500">{product.brand}</span>
@@ -127,7 +141,7 @@ export default async function Home() {
                   <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
                     {product.name}
                   </h3>
-
+                  
                   <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between">
                     <div className="text-base sm:text-lg font-bold text-slate-200">
                       {startingPrice ? `৳${Number(startingPrice).toFixed(2)}` : 'TBA'}
@@ -141,7 +155,7 @@ export default async function Home() {
             );
           })}
         </div>
-
+        
         <div className="flex justify-center mt-12">
           <Link href="/store" className="bg-slate-800 text-white font-medium px-8 py-3 rounded-full hover:bg-slate-700 transition-colors flex items-center gap-2 border border-slate-700">
             View the full catalog <ArrowRight size={16} />
@@ -164,24 +178,24 @@ export default async function Home() {
               const catImage = category.image || category.products[0]?.images[0]?.mediaFile.url;
 
               return (
-                <Link
-                  href={`/store#${category.slug}`}
+                <Link 
+                  href={`/store#${category.slug}`} 
                   key={`${category.id}-${index}`}
                   className="relative w-44 h-56 sm:w-64 sm:h-80 shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20"
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10" />
-
+                  
                   {catImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`${catImage}${catImage.includes("?") ? "&" : "?"}tr=w-400`}
-                      alt={category.name}
+                    <img 
+                      src={`${catImage}${catImage.includes("?") ? "&" : "?"}tr=w-400`} 
+                      alt={category.name} 
                       className="w-full h-full object-cover opacity-60"
                     />
                   ) : (
                     <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">No Image</div>
                   )}
-
+                  
                   <div className="absolute bottom-0 left-0 p-4 sm:p-6 z-20 w-full">
                     <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{category.name}</h3>
                     <div className="w-full flex items-center justify-between">

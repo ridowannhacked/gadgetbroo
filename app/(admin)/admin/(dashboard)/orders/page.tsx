@@ -25,6 +25,10 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  useEffect(() => {
+    fetchOrders();
+  }, [search, statusFilter]);
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -42,10 +46,6 @@ export default function OrdersPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchOrders();
-  }, [search, statusFilter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -22,6 +22,10 @@ export default function ReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    fetchReviews();
+  }, [search]);
+
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -38,10 +42,6 @@ export default function ReviewsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchReviews();
-  }, [search]);
 
   const toggleVisibility = async (id: string, currentIsVisible: boolean) => {
     try {

@@ -3,8 +3,6 @@ import prisma from "@/lib/prisma";
 import { ArrowRight, Search, SlidersHorizontal, Tag } from "lucide-react";
 import StoreSearch from "@/components/storefront/StoreSearch";
 import { safeQuery } from "@/lib/safe-query";
-import StoreSidebarClient from "@/components/storefront/StoreSidebarClient";
-import RecentProductsSlider from "@/components/storefront/RecentProductsSlider";
 
 export const revalidate = 3600;
 
@@ -68,30 +66,25 @@ export default async function StorePage(props: {
     []
   );
 
-  const recentProducts = await safeQuery(
-    prisma.product.findMany({
-      where: { isActive: true, isDeleted: false },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      include: {
-        images: { where: { isPrimary: true }, include: { mediaFile: true }, take: 1 },
-      }
-    }),
-    []
-  );
-
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-200">
-
-      {/* Header Slider */}
-      <div className="max-w-7xl mx-auto px-4 pt-10 pb-4">
-        <RecentProductsSlider products={recentProducts} />
+      
+      {/* Header */}
+      <div className="bg-[#111318] border-b border-slate-800/60 pt-24 pb-12 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
+            The GadgetBroo Store
+          </h1>
+          <p className="text-slate-400 max-w-2xl mx-auto">
+            Browse our entire collection of premium tech devices, accessories, and gear.
+          </p>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
-
+        
         {/* Sidebar Filters */}
-        <StoreSidebarClient>
+        <div className="w-full md:w-64 flex-shrink-0 space-y-8">
           {/* Search Bar */}
           <div>
             <div className="flex items-center gap-2 text-white font-semibold mb-4 pb-2 border-b border-slate-800">
@@ -108,7 +101,7 @@ export default async function StorePage(props: {
               <h3>Categories</h3>
             </div>
             <div className="space-y-2">
-              <Link
+              <Link 
                 href={`/store${searchQuery ? `?search=${searchQuery}` : ''}`}
                 className={`flex items-center gap-2 text-sm transition-colors ${!categoryParam ? 'text-blue-400 font-medium' : 'text-slate-400 hover:text-slate-200'}`}
               >
@@ -116,7 +109,7 @@ export default async function StorePage(props: {
                 All Categories
               </Link>
               {allCategories.map(c => (
-                <Link
+                <Link 
                   key={c.id}
                   href={`/store?category=${c.slug}${searchQuery ? `&search=${searchQuery}` : ''}`}
                   className={`flex items-center gap-2 text-sm transition-colors ${categoryParam === c.slug ? 'text-blue-400 font-medium' : 'text-slate-400 hover:text-slate-200'}`}
@@ -127,11 +120,10 @@ export default async function StorePage(props: {
               ))}
             </div>
           </div>
-        </StoreSidebarClient>
+        </div>
 
         {/* Categorized Product Grid */}
-        <div className="flex-1 space-y-12">
-
+        <div className="flex-1 space-y-16">
           {searchQuery && (
             <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-xl flex items-center justify-between">
               <span>Showing search results for: <strong>"{searchQuery}"</strong></span>
@@ -156,7 +148,7 @@ export default async function StorePage(props: {
 
               return (
                 <div key={category.id} className="scroll-mt-10" id={category.slug}>
-                  <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between mb-8 gap-4 border-b border-slate-800 pb-4">
+                  <div className="flex flex-col sm:flex-row items-end justify-between mb-8 gap-4 border-b border-slate-800 pb-4">
                     <div>
                       <h2 className="text-2xl font-bold text-white tracking-tight">{category.name}</h2>
                       <p className="text-slate-400 mt-1 text-sm">{category.products.length} products available</p>
@@ -169,17 +161,17 @@ export default async function StorePage(props: {
                       const startingPrice = product.variants[0]?.price;
 
                       return (
-                        <Link
-                          href={`/product/${product.slug}`}
+                        <Link 
+                          href={`/product/${product.slug}`} 
                           key={product.id}
                           className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-3 sm:p-5 hover:border-slate-700 transition-colors"
                         >
                           <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
                             {primaryImage ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={`${primaryImage}${primaryImage.includes("?") ? "&" : "?"}tr=w-400`}
-                                alt={product.name}
+                              <img 
+                                src={`${primaryImage}${primaryImage.includes("?") ? "&" : "?"}tr=w-400`} 
+                                alt={product.name} 
                                 className="w-full h-full object-contain p-2 sm:p-4 group-hover:scale-110 transition-transform duration-500"
                               />
                             ) : (
@@ -191,7 +183,7 @@ export default async function StorePage(props: {
                               </span>
                             )}
                           </div>
-
+                          
                           <div className="flex flex-col flex-grow">
                             <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 mb-1">
                               <span>{product.brand}</span>
@@ -199,7 +191,7 @@ export default async function StorePage(props: {
                             <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
                               {product.name}
                             </h3>
-
+                            
                             <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between">
                               <div className="text-base sm:text-lg font-bold text-slate-200">
                                 {startingPrice ? `৳${Number(startingPrice).toFixed(2)}` : 'TBA'}

@@ -8,7 +8,6 @@ import { Button } from './ui/button';
 import StoreSearch from './storefront/StoreSearch';
 import LogoutButton from './logoutUser';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
-import MobileNav from './MobileNav';
 
 export default async function Navbar() {
   const session = await getServerSession();
@@ -26,22 +25,27 @@ export default async function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Logo and Mobile Nav */}
+        {/* Logo */}
         <div className="flex items-center gap-6">
-          <MobileNav />
+          <Link href="/" className="flex items-center gap-2">
+            <h1 className="text-lg font-bold tracking-wider text-white">
+              G<span className="hidden sm:inline">ADGET</span>
+              <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
+            </h1>
+          </Link>
 
-          {/* Desktop Links */}
+          {/* Desktop Links - "Apple Style" */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
             <Link href="/store" className="hover:text-white transition-colors">Store</Link>
-            <Link href="/store?category=mobile-cooler" className="hover:text-white transition-colors">Mobile Coolers</Link>
-            <Link href="/store?category=chargers-and-adapters" className="hover:text-white transition-colors">Chargers & Adapters</Link>
-            <Link href="/store?category=smart-watch" className="hover:text-white transition-colors">Smart Watches</Link>
-            <Link href="/store?category=sounds-audio" className="hover:text-white transition-colors">Sounds & Audio</Link>
+            <Link href="/mac" className="hover:text-white transition-colors">Mac</Link>
+            <Link href="/ipad" className="hover:text-white transition-colors">iPad</Link>
+            <Link href="/iphone" className="hover:text-white transition-colors">iPhone</Link>
+            <Link href="/accessories" className="hover:text-white transition-colors">Accessories</Link>
           </nav>
         </div>
 
         {/* Global Search Bar (Desktop) */}
-        <div className="hidden md:block flex-1 max-w-xl mx-8">
+        <div className="hidden sm:block flex-1 max-w-xl mx-8">
           <StoreSearch />
         </div>
 

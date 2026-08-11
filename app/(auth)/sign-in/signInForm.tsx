@@ -74,7 +74,7 @@ export function SignInForm() {
       return;
     }
     toast.success("User logged in successfully")
-    router.push('/')
+    router.push('/dashboard')
   }
 
   async function handleSocialSignIn(provider: "google" | "github") {
