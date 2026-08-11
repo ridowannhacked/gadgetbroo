@@ -23,10 +23,6 @@ export default function OrderDetailsPage() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
 
-  useEffect(() => {
-    fetchOrder();
-  }, [id]);
-
   const fetchOrder = async () => {
     try {
       const res = await fetch(`/api/orders/${id}`);
@@ -42,6 +38,10 @@ export default function OrderDetailsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOrder();
+  }, [id]);
 
   const updateField = async (field: string, value: string) => {
     setUpdating(true);

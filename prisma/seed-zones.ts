@@ -85,12 +85,12 @@ const bdLocations = {
 
 async function main() {
   console.log('Seeding Comprehensive Bangladesh Shipping Zones...');
-  
+
   const zones = [];
   for (const [state, cities] of Object.entries(bdLocations)) {
     for (const city of cities) {
       // Inside Dhaka City is 60 BDT, everywhere else is 120 BDT
-      const deliveryFee = (state === 'Dhaka' && city === 'Dhaka') ? 60.00 : 120.00;
+      const deliveryFee = (state === 'Khulna' && city === 'Khulna') ? 60.00 : 120.00;
       zones.push({ stateName: state, cityName: city, deliveryFee });
     }
   }
