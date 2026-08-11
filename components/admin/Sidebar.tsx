@@ -69,8 +69,8 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
           <div>
             <Link href='/'>
               <h1 className="text-lg lg:text-xl font-bold tracking-wider text-white">
-                G<span className="hidden lg:inline">ADGET</span>
-                <span className="text-blue-500">B<span className="hidden lg:inline">ROO</span></span>
+                G<span className="inline md:hidden lg:inline">ADGET</span>
+                <span className="text-blue-500">B<span className="inline md:hidden lg:inline">ROO</span></span>
               </h1>
             </Link>
             <p className="text-[10px] lg:text-[11px] text-gray-500 hidden lg:block">Admin Panel</p>
@@ -97,14 +97,14 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 title={item.label}
-                className={`group relative flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`group relative flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/40'
                 }`}
               >
                 <Icon size={18} className="shrink-0" />
-                <span className="hidden lg:inline truncate">{item.label}</span>
+                <span className="inline md:hidden lg:inline truncate">{item.label}</span>
 
                 {/* Tablet Tooltip */}
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity lg:hidden z-50 whitespace-nowrap">
@@ -133,19 +133,19 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
             href="/admin/profile"
             onClick={() => setMobileMenuOpen(false)}
             title="Profile"
-            className="flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/40 transition-colors"
+            className="flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/40 transition-colors"
           >
             <User size={18} className="shrink-0" />
-            <span className="hidden lg:inline">Profile</span>
+            <span className="inline md:hidden lg:inline">Profile</span>
           </Link>
         )}
         <button
           title="Sign Out"
-          className="w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
+          className="w-full flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
           onClick={signoutUser}
         >
           <LogOut size={18} className="shrink-0" />
-          <span className="hidden lg:inline">Sign Out</span>
+          <span className="inline md:hidden lg:inline">Sign Out</span>
         </button>
       </div>
     </div>

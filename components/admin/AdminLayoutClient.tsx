@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { MoreVertical } from 'lucide-react';
 import Sidebar from './Sidebar';
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
@@ -13,10 +12,13 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         <header className="px-4 md:px-8 pt-4 md:pt-6 pb-2 flex items-center justify-between text-xs text-gray-400 font-medium">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-300 hover:text-white rounded-lg hover:bg-gray-800/60 transition-colors"
+            className="md:hidden flex items-center gap-2"
             aria-label="Open menu"
           >
-            <MoreVertical size={20} />
+            <h1 className="text-lg font-bold tracking-wider text-white">
+              G<span className="hidden sm:inline">ADGET</span>
+              <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
+            </h1>
           </button>
         </header>
         <main className="flex-1 px-4 md:px-8 pb-8">
