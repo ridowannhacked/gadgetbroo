@@ -25,7 +25,8 @@ export default async function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
-        
+
+        {/* Logo and Mobile Nav */}
         {/* Logo and Mobile Nav */}
         <div className="flex items-center gap-6">
           <MobileNav />
@@ -82,7 +83,7 @@ export default async function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-slate-800" />
-                  
+
                   {fullUser?.role?.name === 'admin' && (
                     <DropdownMenuItem asChild className="hover:bg-slate-800 cursor-pointer focus:bg-slate-800">
                       <Link href="/admin" className="flex items-center gap-2">
@@ -91,14 +92,14 @@ export default async function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  
+
                   <DropdownMenuItem asChild className="hover:bg-slate-800 cursor-pointer focus:bg-slate-800">
                     <Link href="/dashboard" className="flex items-center gap-2">
                       <UserIcon size={14} />
                       My Profile
                     </Link>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuSeparator className="bg-slate-800" />
                   <div className="p-1">
                     <LogoutButton />
