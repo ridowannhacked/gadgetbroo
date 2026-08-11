@@ -9,15 +9,16 @@ export default function StoreSearch() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  const initialSearch = searchParams.get("search") || "";
-  const categoryParam = searchParams.get("category") || "";
+  const currentUrlSearch = searchParams.get("search") || "";
   
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [searchTerm, setSearchTerm] = useState(currentUrlSearch);
+  const [prevUrlSearch, setPrevUrlSearch] = useState(currentUrlSearch);
 
-  // Keep local state in sync if URL changes externally
-  useEffect(() => {
-    setSearchTerm(searchParams.get("search") || "");
-  }, [searchParams]);
+  // Sync state if URL changes externally (e.g., back button), without cascading render
+  if (currentUrlSearch !== prevUrlSearch) {
+    setPrevUrlSearch(currentUrlSearch);
+    setSearchTerm(currentUrlSearch);
+  }
 
   // Debounced search function
   const createQueryString = useCallback(

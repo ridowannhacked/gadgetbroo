@@ -15,6 +15,7 @@ export default function ProfilePage() {
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [prevUserId, setPrevUserId] = useState<string | undefined>(undefined);
   const [savingDetails, setSavingDetails] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -22,12 +23,11 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name || "");
-      setEmail(user.email || "");
-    }
-  }, [user]);
+  if (user && user.id !== prevUserId) {
+    setPrevUserId(user.id);
+    setName(user.name || "");
+    setEmail(user.email || "");
+  }
 
   const handleUpdateDetails = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -54,13 +54,15 @@ function EditUserModal({
 }) {
   const [email, setEmail] = useState(user.email);
   const [roleId, setRoleId] = useState(user.roleId ?? "");
+  const [prevUserId, setPrevUserId] = useState(user.id);
   const [saving, setSaving] = useState(false);
 
-  // Sync when user changes
-  useEffect(() => {
+  // Sync state if user changes without cascading render
+  if (user.id !== prevUserId) {
+    setPrevUserId(user.id);
     setEmail(user.email);
     setRoleId(user.roleId ?? "");
-  }, [user]);
+  }
 
   const handleSave = async () => {
     setSaving(true);
@@ -153,13 +155,6 @@ function ChangePasswordModal({
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!open) {
-      setNewPassword("");
-      setConfirm("");
-    }
-  }, [open]);
 
   const handleSave = async () => {
     const passwordValidation = passwordSchema.safeParse(newPassword);
