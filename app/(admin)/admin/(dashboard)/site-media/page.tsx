@@ -95,7 +95,7 @@ export default function SiteMediaAdminPage() {
     setNewPlacement(banner.placement);
     setNewLinkUrl(banner.linkUrl || "");
     // Create a mock selectedFile object to satisfy the form state
-    setSelectedFile({ fileId: banner.fileId, url: banner.url, name: banner.title } as any);
+    setSelectedFile({ fileId: banner.fileId, url: banner.url, name: banner.title, fileType: "image" } as MediaFileRecord);
     setShowAddForm(true);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -176,7 +176,7 @@ export default function SiteMediaAdminPage() {
                   <label className="text-xs font-medium text-slate-400">Placement</label>
                   <select 
                     value={newPlacement}
-                    onChange={(e) => setNewPlacement(e.target.value as any)}
+                    onChange={(e) => setNewPlacement(e.target.value as SiteMedia["placement"])}
                     className="w-full bg-[#0b0d0f] border border-slate-700 text-white rounded-md p-2.5 mt-1 text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="HERO_SLIDER">Hero Slider (Main)</option>

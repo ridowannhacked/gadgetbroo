@@ -82,7 +82,9 @@ export default function EditProductPage() {
             categoryId: data.product.categoryId,
             isActive: data.product.isActive,
             isFeatured: data.product.isFeatured,
-            variants: data.product.variants.map((v: any) => ({
+            variants: data.product.variants.map((v: {
+              id: string; name: string; sku: string; price: number; stock: number; color?: string; storage?: string; size?: string; isActive: boolean;
+            }) => ({
               id: v.id,
               name: v.name,
               sku: v.sku,
@@ -96,7 +98,9 @@ export default function EditProductPage() {
           });
           
           if (data.product.images) {
-            setUploadedMedia(data.product.images.map((img: any) => ({
+            setUploadedMedia(data.product.images.map((img: {
+              id: string; isPrimary: boolean; mediaFile: { url: string; fileId: string; name: string; fileType: "image" | "video" };
+            }) => ({
               id: img.id,
               url: img.mediaFile.url,
               fileId: img.mediaFile.fileId,

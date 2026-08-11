@@ -44,7 +44,7 @@ export async function PATCH(
     // Only allow updating specific fields
     const { status, paymentStatus, trackingNumber, adminNotes } = body;
     
-    const data: any = {};
+    const data: Record<string, string | null> = {};
     if (status && OrderStatus.includes(status)) data.status = status;
     if (paymentStatus && PaymentStatus.includes(paymentStatus)) data.paymentStatus = paymentStatus;
     if (trackingNumber !== undefined) data.trackingNumber = trackingNumber;

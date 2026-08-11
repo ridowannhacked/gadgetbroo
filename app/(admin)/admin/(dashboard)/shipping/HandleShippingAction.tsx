@@ -42,8 +42,8 @@ export function CreateShippingZoneButton({ onSuccess }: { onSuccess: () => void 
       toast.success("Shipping zone created successfully");
       setOpen(false);
       onSuccess();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create shipping zone");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create shipping zone");
     } finally {
       setLoading(false);
     }
@@ -118,8 +118,8 @@ export function EditShippingZoneButton({ zone, onSuccess }: { zone: ShippingZone
       toast.success("Shipping zone updated successfully");
       setOpen(false);
       onSuccess();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update shipping zone");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update shipping zone");
     } finally {
       setLoading(false);
     }
@@ -181,8 +181,8 @@ export function DeleteShippingZoneButton({ zone, onSuccess }: { zone: ShippingZo
       toast.success("Shipping zone deleted successfully");
       setOpen(false);
       onSuccess();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete shipping zone");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete shipping zone");
     } finally {
       setLoading(false);
     }

@@ -52,9 +52,9 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     } else {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating comment:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
 }
 
@@ -89,8 +89,8 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     } else {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting comment:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
 }

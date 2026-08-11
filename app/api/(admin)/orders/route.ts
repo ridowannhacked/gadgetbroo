@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const where = {
       AND: [
         search ? { id: { contains: search, mode: "insensitive" as const } } : {},
-        status ? { status: status as any } : {},
+        status ? { status: status as import("@prisma/client").OrderStatus } : {},
       ],
     };
 

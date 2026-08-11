@@ -52,9 +52,9 @@ export async function GET(req: NextRequest) {
       : comments;
 
     return NextResponse.json({ success: true, data: finalComments });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching comments:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
 }
 
@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: comment });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating comment:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
 }

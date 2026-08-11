@@ -7,8 +7,18 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 
-export default function AdminCommentsClient({ initialComments }: { initialComments: any[] }) {
-  const [comments, setComments] = useState(initialComments);
+type AdminComment = {
+  id: string;
+  body: string;
+  isPublic: boolean;
+  adminReply: string | null;
+  createdAt: string | Date;
+  user: { name: string | null; email: string };
+  product: { name: string; slug: string };
+};
+
+export default function AdminCommentsClient({ initialComments }: { initialComments: AdminComment[] }) {
+  const [comments, setComments] = useState<AdminComment[]>(initialComments);
   const [searchQuery, setSearchQuery] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");

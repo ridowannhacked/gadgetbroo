@@ -6,9 +6,23 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAuthSession } from "@/components/auth/AuthSessionProvider";
 
+type CommentWithUser = {
+  id: string;
+  body: string;
+  userId: string;
+  productId: string;
+  isPublic: boolean;
+  adminReply: string | null;
+  createdAt: string;
+  user: {
+    name: string | null;
+    email: string;
+  };
+};
+
 export default function ProductCommentsClient({ productId }: { productId: string }) {
   const { user } = useAuthSession();
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<CommentWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [newComment, setNewComment] = useState("");
@@ -58,8 +72,8 @@ export default function ProductCommentsClient({ productId }: { productId: string
       } else {
         throw new Error(data.error);
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to post comment");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to post comment");
     } finally {
       setIsSubmitting(false);
     }

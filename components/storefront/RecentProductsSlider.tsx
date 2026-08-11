@@ -5,7 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function RecentProductsSlider({ products }: { products: any[] }) {
+type SliderProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  images: { mediaFile: { url: string } }[];
+};
+
+export default function RecentProductsSlider({ products }: { products: SliderProduct[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
