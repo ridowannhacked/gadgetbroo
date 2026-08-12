@@ -9,16 +9,66 @@ import Link from "next/link";
 import { format } from "date-fns";
 import ProductCommentsClient from "@/components/storefront/ProductCommentsClient";
 
+type ImageWithMedia = {
+  id: string;
+  isPrimary: boolean;
+  mediaFile: {
+    url: string;
+    fileType: string;
+    name: string | null;
+  };
+};
+
+type Variant = {
+  id: string;
+  price: number;
+  stock: number;
+  color: string | null;
+  size: string | null;
+  storage: string | null;
+};
+
+type RelatedProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  isFeatured: boolean;
+  category: { slug: string; name: string };
+  images: ImageWithMedia[];
+  variants: Variant[];
+};
+
+type ReviewWithUser = {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  createdAt: string | Date;
+  user: { name: string | null };
+};
+
+type ProductProp = {
+  id: string;
+  name: string;
+  brand: string;
+  description: string;
+  isFeatured: boolean;
+  category: { slug: string; name: string };
+  images: ImageWithMedia[];
+  variants: Variant[];
+};
+
 export default function ProductDetailsClient({
   product,
   reviews = [],
   canReview = false,
   relatedProducts = []
 }: {
-  product: any,
-  reviews?: any[],
+  product: ProductProp,
+  reviews?: ReviewWithUser[],
   canReview?: boolean,
-  relatedProducts?: any[]
+  relatedProducts?: RelatedProduct[]
 }) {
   const { addItem } = useCart();
 
@@ -35,9 +85,9 @@ export default function ProductDetailsClient({
   const [activeMedia, setActiveMedia] = useState(sortedImages[0] || null);
 
   // Variant selection states
-  const availableColors = useMemo(() => Array.from(new Set(product.variants.map((v: any) => v.color).filter(Boolean))) as string[], [product.variants]);
-  const availableSizes = useMemo(() => Array.from(new Set(product.variants.map((v: any) => v.size).filter(Boolean))) as string[], [product.variants]);
-  const availableStorages = useMemo(() => Array.from(new Set(product.variants.map((v: any) => v.storage).filter(Boolean))) as string[], [product.variants]);
+  const availableColors = useMemo(() => Array.from(new Set(product.variants.map((v: Variant) => v.color).filter(Boolean))) as string[], [product.variants]);
+  const availableSizes = useMemo(() => Array.from(new Set(product.variants.map((v: Variant) => v.size).filter(Boolean))) as string[], [product.variants]);
+  const availableStorages = useMemo(() => Array.from(new Set(product.variants.map((v: Variant) => v.storage).filter(Boolean))) as string[], [product.variants]);
 
   const [selectedColor, setSelectedColor] = useState<string | null>(availableColors[0] || null);
   const [selectedSize, setSelectedSize] = useState<string | null>(availableSizes[0] || null);
@@ -48,9 +98,9 @@ export default function ProductDetailsClient({
   // Safe selection handlers to prevent invalid combinations
   const handleSelectColor = (color: string) => {
     setSelectedColor(color);
-    const exists = product.variants.find((v: any) => v.color === color && v.size === selectedSize && v.storage === selectedStorage);
+    const exists = product.variants.find((v: Variant) => v.color === color && v.size === selectedSize && v.storage === selectedStorage);
     if (!exists) {
-      const valid = product.variants.find((v: any) => v.color === color);
+      const valid = product.variants.find((v: Variant) => v.color === color);
       if (valid) {
         if (valid.size) setSelectedSize(valid.size);
         if (valid.storage) setSelectedStorage(valid.storage);
@@ -60,9 +110,9 @@ export default function ProductDetailsClient({
 
   const handleSelectSize = (size: string) => {
     setSelectedSize(size);
-    const exists = product.variants.find((v: any) => v.color === selectedColor && v.size === size && v.storage === selectedStorage);
+    const exists = product.variants.find((v: Variant) => v.color === selectedColor && v.size === size && v.storage === selectedStorage);
     if (!exists) {
-      const valid = product.variants.find((v: any) => v.size === size);
+      const valid = product.variants.find((v: Variant) => v.size === size);
       if (valid) {
         if (valid.color) setSelectedColor(valid.color);
         if (valid.storage) setSelectedStorage(valid.storage);
@@ -72,9 +122,9 @@ export default function ProductDetailsClient({
 
   const handleSelectStorage = (storage: string) => {
     setSelectedStorage(storage);
-    const exists = product.variants.find((v: any) => v.color === selectedColor && v.size === selectedSize && v.storage === storage);
+    const exists = product.variants.find((v: Variant) => v.color === selectedColor && v.size === selectedSize && v.storage === storage);
     if (!exists) {
-      const valid = product.variants.find((v: any) => v.storage === storage);
+      const valid = product.variants.find((v: Variant) => v.storage === storage);
       if (valid) {
         if (valid.color) setSelectedColor(valid.color);
         if (valid.size) setSelectedSize(valid.size);
@@ -96,7 +146,7 @@ export default function ProductDetailsClient({
     // If there is only one variant (e.g. no options), just return it
     if (product.variants.length === 1) return product.variants[0];
 
-    return product.variants.find((v: any) => {
+    return product.variants.find((v: Variant) => {
       const matchColor = selectedColor ? v.color === selectedColor : true;
       const matchSize = selectedSize ? v.size === selectedSize : true;
       const matchStorage = selectedStorage ? v.storage === selectedStorage : true;
@@ -186,8 +236,8 @@ export default function ProductDetailsClient({
         ...localReviews
       ]);
 
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Error submitting review");
     } finally {
       setIsSubmittingReview(false);
     }
@@ -210,7 +260,7 @@ export default function ProductDetailsClient({
         <div className="flex flex-col-reverse lg:flex-row gap-4 h-fit static lg:sticky lg:top-24 z-10">
           {/* Thumbnail Strip */}
           <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:max-h-[600px] no-scrollbar pb-2 lg:pb-0 w-full lg:w-20 flex-shrink-0">
-            {sortedImages.map((img: any, idx: number) => {
+            {sortedImages.map((img: ImageWithMedia, idx: number) => {
               const isActive = activeMedia?.id === img.id;
               const isVideo = img.mediaFile.fileType === "video";
 
@@ -511,10 +561,10 @@ export default function ProductDetailsClient({
                 <div className="flex gap-0.5 text-amber-500">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} size={18} fill={
-                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length)
+                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: ReviewWithUser) => acc + r.rating, 0) / localReviews.length)
                         ? "currentColor" : "none"
                     } className={
-                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length)
+                      localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: ReviewWithUser) => acc + r.rating, 0) / localReviews.length)
                         ? "text-amber-500" : "text-slate-700"
                     } />
                   ))}
@@ -603,7 +653,7 @@ export default function ProductDetailsClient({
               </div>
             ) : (
               <div className="space-y-6">
-                {localReviews.map((review: any) => (
+                {localReviews.map((review: ReviewWithUser) => (
                   <div key={review.id} className="border-b border-slate-800/50 pb-6 last:border-0 last:pb-0">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3">

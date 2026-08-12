@@ -1,9 +1,9 @@
-import Image from 'next/image';
+
 import Link from 'next/link';
 import { getServerSession } from '../helpers/get-servesession';
 import prisma from '../lib/prisma';
 import CartIcon from './storefront/CartIcon';
-import { User as UserIcon, LayoutDashboard, LogOut } from 'lucide-react';
+import { User as UserIcon, LayoutDashboard } from 'lucide-react';
 import { Button } from './ui/button';
 import StoreSearch from './storefront/StoreSearch';
 import LogoutButton from './logoutUser';

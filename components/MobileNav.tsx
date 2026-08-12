@@ -14,11 +14,13 @@ export default function MobileNav() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   // Close sidebar on navigation (e.g., after a search)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOpen(false);
   }, [pathname, searchParams]);
 
