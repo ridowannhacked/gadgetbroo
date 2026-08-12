@@ -60,6 +60,7 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
             src={banner.url}
             alt={banner.title}
             fill
+            sizes="100vw"
             className={`object-cover object-center transition-opacity duration-700 ease-in-out ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}

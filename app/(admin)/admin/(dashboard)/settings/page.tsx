@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
-import { MediaPickerDialog } from '@/components/admin/media/MediaPickerDialog';
+import { MediaPickerDialog, MediaFileRecord } from '@/components/admin/media/MediaPickerDialog';
 
 export default function SettingsPage() {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
@@ -74,14 +74,15 @@ export default function SettingsPage() {
 
       const data = await res.json();
       toast.success('Settings saved successfully!');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       toast.error(error.message || 'Failed to save settings');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleMediaSelect = (selected: any) => {
+  const handleMediaSelect = (selected: MediaFileRecord | MediaFileRecord[]) => {
     if (Array.isArray(selected)) return; // Only accept single selection
     if (pickerTarget === 'banner') {
       setBannerUrl(selected.url);
