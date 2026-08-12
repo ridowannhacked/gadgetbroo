@@ -20,8 +20,8 @@ export default function CategoriesPage() {
       setLoading(true);
       const res = await fetch("/api/categories");
       if (!res.ok) throw new Error();
-      const data: CategoryData[] = await res.json();
-      setCategories(data);
+      const data = await res.json();
+      setCategories(data.categories || []);
     } catch {
       toast.error("Failed to load categories");
     } finally {

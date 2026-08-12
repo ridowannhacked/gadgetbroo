@@ -31,7 +31,7 @@ export default async function MyOrdersPage() {
         {orders.length === 0 ? (
           <div className="bg-[#0b0f19] border border-dashed border-slate-800/60 rounded-2xl py-16 text-center text-slate-500">
             <Package size={32} className="mx-auto mb-3 opacity-40" />
-            <p>You haven't placed any orders yet.</p>
+            <p>You haven&apos;t placed any orders yet.</p>
             <Link href="/store" className="inline-block mt-4 text-blue-500 hover:text-blue-400 font-medium">
               Start Shopping &rarr;
             </Link>

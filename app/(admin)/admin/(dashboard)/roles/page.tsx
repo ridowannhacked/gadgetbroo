@@ -274,8 +274,8 @@ export default function RolesPage() {
       setLoading(true);
       const res = await fetch("/api/roles/", { cache: "no-store" });
       const data = await res.json();
-      if (!Array.isArray(data)) throw new Error("Bad response");
-      setRolesData(data);
+      if (!Array.isArray(data.roles)) throw new Error("Bad response");
+      setRolesData(data.roles);
     } catch {
       toast.error("Failed to load roles");
     } finally {

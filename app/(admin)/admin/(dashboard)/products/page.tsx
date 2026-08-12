@@ -47,7 +47,13 @@ export default function ProductsPage() {
   useEffect(() => {
     fetch("/api/categories")
       .then((r) => r.json())
-      .then(setCategories)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          setCategories(data.categories || []);
+        }
+      })
       .catch(() => { });
   }, []);
 

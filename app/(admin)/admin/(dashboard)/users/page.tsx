@@ -282,9 +282,9 @@ export default function UsersPage() {
       const usersJson = await usersRes.json();
       const rolesJson = await rolesRes.json();
 
-      if (!Array.isArray(usersJson)) throw new Error("Failed to fetch users");
-      setUsersData(usersJson);
-      if (Array.isArray(rolesJson)) setRoles(rolesJson);
+      if (!Array.isArray(usersJson.users)) throw new Error("Failed to fetch users");
+      setUsersData(usersJson.users);
+      if (Array.isArray(rolesJson.roles)) setRoles(rolesJson.roles);
     } catch {
       toast.error("Failed to load users");
     } finally {

@@ -139,8 +139,8 @@ export default function CheckoutClient({ groupedZones, user, savedAddresses }: C
       // Redirect to a success page (or order status page)
       router.push(`/order/success?id=${orderData.orderId}`);
       
-    } catch (err: any) {
-      toast.error(err.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }

@@ -25,7 +25,7 @@ export default function AdminCommentsClient({ initialComments }: { initialCommen
 
   const filteredComments = comments.filter(c => 
     c.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.user.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -153,7 +153,7 @@ export default function AdminCommentsClient({ initialComments }: { initialCommen
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Admin Reply</span>
                         <button 
-                          onClick={() => { setReplyingTo(comment.id); setReplyContent(comment.adminReply); }}
+                          onClick={() => { setReplyingTo(comment.id); setReplyContent(comment.adminReply || ""); }}
                           className="opacity-0 group-hover/reply:opacity-100 text-slate-400 hover:text-blue-400 p-1 transition-opacity"
                         >
                           <Edit2 size={12} />
