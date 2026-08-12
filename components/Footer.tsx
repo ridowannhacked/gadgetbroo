@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import prisma from '@/lib/prisma';
 
-export default function Footer() {
+export default async function Footer() {
+  const settings = await prisma.storeSettings.findUnique({
+    where: { id: "global" }
+  });
+
   return (
     <footer className="bg-[#0a0a0a] border-t border-slate-800/60 text-slate-400 py-12 md:py-16 mt-auto">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -9,12 +14,17 @@ export default function Footer() {
           {/* Logo and Description */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <h1 className="text-3xl font-bold tracking-wider text-white flex items-center">
-                <span className="text-blue-500 mr-1">G</span>
-                ADGET
-                <span className="text-blue-500">B</span>
-                ROO
-              </h1>
+              {settings?.bannerUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={settings.bannerUrl} alt="GadgetBroo" className="h-8 w-auto object-contain" />
+              ) : (
+                <h1 className="text-3xl font-bold tracking-wider text-white flex items-center">
+                  <span className="text-blue-500 mr-1">G</span>
+                  ADGET
+                  <span className="text-blue-500">B</span>
+                  ROO
+                </h1>
+              )}
             </Link>
             <p className="text-sm">
               Your one-stop gadget shop.
@@ -40,11 +50,6 @@ export default function Footer() {
                   Return Policy
                 </Link>
               </li>
-              <li>
-                <Link href="/track-order" className="hover:text-white transition-colors text-sm">
-                  Track Order
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -52,11 +57,10 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4 text-lg">Contact</h3>
             <ul className="space-y-3 text-sm">
-              <li>mahamudul.dev@gmail.com</li>
-              <li>+8801881835612</li>
-              <li className="leading-relaxed">
-                Brothers Computer Zone, Sachibunia Bazar, Lobonchora,<br />
-                Khulna
+              <li>{settings?.contactEmail || "mahamudul.dev@gmail.com"}</li>
+              <li>{settings?.contactPhone || "+8801881835612"}</li>
+              <li className="leading-relaxed whitespace-pre-wrap">
+                {settings?.contactAddress || "Brothers Computer Zone, Sachibunia Bazar, Lobonchora,\nKhulna"}
               </li>
             </ul>
           </div>
@@ -64,7 +68,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-slate-800/60 text-center text-sm flex flex-col items-center justify-center">
-          <p>© 2026 GadgetBroo. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} GadgetBroo. All rights reserved.</p>
         </div>
       </div>
     </footer>
