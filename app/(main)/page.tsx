@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { ArrowRight, Search } from "lucide-react";
 import HeroSlider from "@/components/storefront/HeroSlider";
 import { safeQuery } from "@/lib/safe-query";
+import CategorySlider from "@/components/storefront/CategorySlider";
 
 // Force dynamic if needed, or rely on ISR/revalidation
 export const revalidate = 3600; // revalidate every hour
@@ -60,8 +61,9 @@ export default async function Home() {
       []
     )
   ]);
-  // Duplicate categories array to make the infinite marquee scroll seamless
-  const marqueeCategories = [...categories, ...categories, ...categories];
+  
+  // Filter out categories that have NO products (or no active products)
+  const validCategories = categories.filter(c => c.products && c.products.length > 0);
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-slate-200 selection:bg-blue-500/30 overflow-x-hidden">
@@ -149,53 +151,20 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Explore Categories - Infinite Marquee Slider AT THE BOTTOM */}
-      <section className="py-20 border-t border-white/5 relative overflow-hidden bg-[#0d0f14]">
+      {/* Explore Categories - Interactive Slider AT THE BOTTOM */}
+      <section className="py-20 border-t border-white/5 relative bg-[#0d0f14]">
         <div className="text-center mb-10 px-4">
           <h2 className="text-3xl font-bold text-white tracking-tight">Shop by Category</h2>
           <p className="text-slate-400 mt-2">Explore our specialized collections.</p>
         </div>
 
-        {/* Marquee Container */}
-        <div className="flex overflow-hidden w-full group py-4">
-          <div className="flex shrink-0 animate-[marquee_30s_linear_infinite] group-hover:![animation-play-state:paused] gap-6 px-3">
-            {marqueeCategories.map((category, index) => {
-              // Use category image, or fallback to the first product's image in this category
-              const catImage = category.image || category.products[0]?.images[0]?.mediaFile.url;
-
-              return (
-                <Link
-                  href={`/store#${category.slug}`}
-                  key={`${category.id}-${index}`}
-                  className="relative w-44 h-56 sm:w-64 sm:h-80 shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10" />
-
-                  {catImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`${catImage}${catImage.includes("?") ? "&" : "?"}tr=w-400`}
-                      alt={category.name}
-                      className="w-full h-full object-cover opacity-60"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">No Image</div>
-                  )}
-
-                  <div className="absolute bottom-0 left-0 p-4 sm:p-6 z-20 w-full">
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{category.name}</h3>
-                    <div className="w-full flex items-center justify-between">
-                      <span className="text-[10px] sm:text-xs text-blue-400">View Collection</span>
-                      <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
-                        <ArrowRight size={12} className="sm:w-[14px] sm:h-[14px]" />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+        {validCategories.length > 0 ? (
+          <CategorySlider categories={validCategories} />
+        ) : (
+          <div className="text-center py-12 text-slate-500 bg-[#12151a] mx-4 rounded-2xl border border-slate-800">
+            No categories available yet.
           </div>
-        </div>
+        )}
       </section>
 
       {/* Footer */}
