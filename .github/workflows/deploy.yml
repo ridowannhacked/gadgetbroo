@@ -4,6 +4,15 @@ on:
   push:
     branches: [master]
 
+# Prevents two pushes in quick succession from running the deploy script
+# on the server at the same time — that race is what caused the ENOTEMPTY
+# npm ci failure (two `npm ci` runs touching node_modules simultaneously).
+# A new push waits for the in-flight deploy to finish rather than canceling
+# it, since a half-finished deploy on the server is worse than a short wait.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
