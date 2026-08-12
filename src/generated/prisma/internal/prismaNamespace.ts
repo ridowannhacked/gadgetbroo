@@ -403,7 +403,9 @@ export const ModelName = {
   SiteMedia: 'SiteMedia',
   AuditLog: 'AuditLog',
   ShippingZone: 'ShippingZone',
-  Comment: 'Comment'
+  Comment: 'Comment',
+  Page: 'Page',
+  StoreSettings: 'StoreSettings'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "role" | "rateLimit" | "permission" | "category" | "product" | "productVariant" | "mediaFile" | "productImage" | "address" | "order" | "orderItem" | "review" | "siteMedia" | "auditLog" | "shippingZone" | "comment"
+    modelProps: "user" | "session" | "account" | "verification" | "role" | "rateLimit" | "permission" | "category" | "product" | "productVariant" | "mediaFile" | "productImage" | "address" | "order" | "orderItem" | "review" | "siteMedia" | "auditLog" | "shippingZone" | "comment" | "page" | "storeSettings"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1903,6 +1905,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Page: {
+      payload: Prisma.$PagePayload<ExtArgs>
+      fields: Prisma.PageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>
+        }
+        findFirst: {
+          args: Prisma.PageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>
+        }
+        findMany: {
+          args: Prisma.PageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>[]
+        }
+        create: {
+          args: Prisma.PageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>
+        }
+        createMany: {
+          args: Prisma.PageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>[]
+        }
+        delete: {
+          args: Prisma.PageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>
+        }
+        update: {
+          args: Prisma.PageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>
+        }
+        deleteMany: {
+          args: Prisma.PageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>[]
+        }
+        upsert: {
+          args: Prisma.PageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PagePayload>
+        }
+        aggregate: {
+          args: Prisma.PageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePage>
+        }
+        groupBy: {
+          args: Prisma.PageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PageCountAggregateOutputType> | number
+        }
+      }
+    }
+    StoreSettings: {
+      payload: Prisma.$StoreSettingsPayload<ExtArgs>
+      fields: Prisma.StoreSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StoreSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StoreSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.StoreSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StoreSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.StoreSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.StoreSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.StoreSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StoreSettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.StoreSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>
+        }
+        update: {
+          args: Prisma.StoreSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.StoreSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StoreSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StoreSettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.StoreSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoreSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.StoreSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStoreSettings>
+        }
+        groupBy: {
+          args: Prisma.StoreSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StoreSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StoreSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StoreSettingsCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2245,6 +2395,31 @@ export const CommentScalarFieldEnum = {
 export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
 
 
+export const PageScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  language: 'language',
+  content: 'content',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PageScalarFieldEnum = (typeof PageScalarFieldEnum)[keyof typeof PageScalarFieldEnum]
+
+
+export const StoreSettingsScalarFieldEnum = {
+  id: 'id',
+  bannerUrl: 'bannerUrl',
+  faviconUrl: 'faviconUrl',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
+  contactAddress: 'contactAddress',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StoreSettingsScalarFieldEnum = (typeof StoreSettingsScalarFieldEnum)[keyof typeof StoreSettingsScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2582,6 +2757,8 @@ export type GlobalOmitConfig = {
   auditLog?: Prisma.AuditLogOmit
   shippingZone?: Prisma.ShippingZoneOmit
   comment?: Prisma.CommentOmit
+  page?: Prisma.PageOmit
+  storeSettings?: Prisma.StoreSettingsOmit
 }
 
 /* Types for Logging */

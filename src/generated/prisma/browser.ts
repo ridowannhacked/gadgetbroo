@@ -117,3 +117,13 @@ export type ShippingZone = Prisma.ShippingZoneModel
  * 
  */
 export type Comment = Prisma.CommentModel
+/**
+ * Model Page
+ * 
+ */
+export type Page = Prisma.PageModel
+/**
+ * Model StoreSettings
+ * 
+ */
+export type StoreSettings = Prisma.StoreSettingsModel

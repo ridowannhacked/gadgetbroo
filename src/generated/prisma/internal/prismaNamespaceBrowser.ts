@@ -70,7 +70,9 @@ export const ModelName = {
   SiteMedia: 'SiteMedia',
   AuditLog: 'AuditLog',
   ShippingZone: 'ShippingZone',
-  Comment: 'Comment'
+  Comment: 'Comment',
+  Page: 'Page',
+  StoreSettings: 'StoreSettings'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -390,6 +392,31 @@ export const CommentScalarFieldEnum = {
 } as const
 
 export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
+
+
+export const PageScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  language: 'language',
+  content: 'content',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PageScalarFieldEnum = (typeof PageScalarFieldEnum)[keyof typeof PageScalarFieldEnum]
+
+
+export const StoreSettingsScalarFieldEnum = {
+  id: 'id',
+  bannerUrl: 'bannerUrl',
+  faviconUrl: 'faviconUrl',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
+  contactAddress: 'contactAddress',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StoreSettingsScalarFieldEnum = (typeof StoreSettingsScalarFieldEnum)[keyof typeof StoreSettingsScalarFieldEnum]
 
 
 export const SortOrder = {
