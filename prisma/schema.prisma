@@ -395,3 +395,27 @@ model Comment {
   @@index([userId])
   @@map("comments")
 }
+
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   // e.g., "privacy-policy", "terms-conditions", "return-policy"
+  language  String   @default("en") // "en" or "bn"
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, language])
+  @@map("pages")
+}
+
+model StoreSettings {
+  id             String   @id @default("global")
+  bannerUrl      String?
+  faviconUrl     String?
+  contactEmail   String
+  contactPhone   String
+  contactAddress String   @db.Text
+  updatedAt      DateTime @updatedAt
+
+  @@map("store_settings")
+}
