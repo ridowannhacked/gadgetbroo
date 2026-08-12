@@ -57,6 +57,19 @@ async function main() {
   } else {
     console.log("⚠ Admin already exists, skipping");
   }
+
+  // Step 3 - Seed Store Settings
+  const settings = await prisma.storeSettings.upsert({
+    where: { id: "global" },
+    update: {},
+    create: {
+      id: "global",
+      contactEmail: "mahamudul.dev@gmail.com",
+      contactPhone: "+8801881835612",
+      contactAddress: "Brothers Computer Zone, Sachibunia Bazar, Lobonchora,\nKhulna",
+    },
+  });
+  console.log("✓ Store Settings seeded");
 }
 
 main()

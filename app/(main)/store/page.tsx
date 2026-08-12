@@ -134,7 +134,7 @@ export default async function StorePage(props: {
 
           {searchQuery && (
             <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-3 rounded-xl flex items-center justify-between">
-              <span>Showing search results for: <strong>"{searchQuery}"</strong></span>
+              <span>Showing search results for: <strong>&quot;{searchQuery}&quot;</strong></span>
               <Link href={`/store${categoryParam ? `?category=${categoryParam}` : ''}`} className="text-sm underline hover:text-blue-300">
                 Clear Search
               </Link>
@@ -145,7 +145,7 @@ export default async function StorePage(props: {
             <div className="bg-[#111318] rounded-2xl border border-slate-800 p-12 text-center flex flex-col items-center justify-center">
               <Search className="w-12 h-12 text-slate-600 mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No products found</h3>
-              <p className="text-slate-400 text-sm mb-6">We couldn't find any products matching your current filters.</p>
+              <p className="text-slate-400 text-sm mb-6">We couldn&apos;t find any products matching your current filters.</p>
               <Link href="/store" className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-medium hover:bg-slate-200 transition-colors">
                 Clear All Filters
               </Link>

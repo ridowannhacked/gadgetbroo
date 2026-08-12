@@ -28,6 +28,7 @@ model User {
   addresses Address[]
   orders    Order[]
   reviews   Review[]
+  comments  Comment[]
   auditLogs AuditLog[]
 
   @@unique([email])
@@ -170,6 +171,7 @@ model Product {
   variants    ProductVariant[]
   images      ProductImage[]
   reviews     Review[]
+  comments    Comment[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
@@ -372,4 +374,48 @@ model ShippingZone {
 
   @@unique([stateName, cityName])
   @@map("shipping_zones")
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  body        String   @db.Text
+  isPublic    Boolean  @default(false)
+  
+  adminReply  String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   // e.g., "privacy-policy", "terms-conditions", "return-policy"
+  language  String   @default("en") // "en" or "bn"
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, language])
+  @@map("pages")
+}
+
+model StoreSettings {
+  id             String   @id @default("global")
+  bannerUrl      String?
+  faviconUrl     String?
+  contactEmail   String
+  contactPhone   String
+  contactAddress String   @db.Text
+  updatedAt      DateTime @updatedAt
+
+  @@map("store_settings")
 }

@@ -18,12 +18,12 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     });
 
     return NextResponse.json({ success: true, data: updatedZone });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating shipping zone:", error);
-    if (error.code === 'P2002') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return NextResponse.json({ success: false, error: "A shipping zone for this state and city already exists." }, { status: 400 });
     }
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
 }
 
@@ -35,8 +35,8 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting shipping zone:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
   }
 }

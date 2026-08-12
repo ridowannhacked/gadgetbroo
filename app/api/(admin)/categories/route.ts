@@ -4,21 +4,29 @@ import prisma from "../../../../lib/prisma";
 import { checkPermission } from "../../../../lib/rbac";
 import { createCategorySchema } from "../../../../zodSchemas/categorySchema";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await checkPermission("Categories", "canView");
     if (!session) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const categories = await prisma.category.findMany({
-      include: {
-        _count: { select: { products: true } },
-      },
-      orderBy: { createdAt: "asc" },
-    });
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
-    return NextResponse.json(categories);
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        include: { _count: { select: { products: true } } },
+        orderBy: { createdAt: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.category.count()
+    ]);
+
+    return NextResponse.json({ categories, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });

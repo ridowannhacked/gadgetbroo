@@ -16,7 +16,7 @@ export default function imageKitLoader({ src, width, quality }: { src: string; w
     const url = new URL(src);
     url.searchParams.set("tr", paramsString);
     return url.toString();
-  } catch (e) {
+  } catch {
     return src;
   }
 }

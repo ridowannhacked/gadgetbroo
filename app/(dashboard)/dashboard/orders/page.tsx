@@ -31,7 +31,7 @@ export default async function MyOrdersPage() {
         {orders.length === 0 ? (
           <div className="bg-[#0b0f19] border border-dashed border-slate-800/60 rounded-2xl py-16 text-center text-slate-500">
             <Package size={32} className="mx-auto mb-3 opacity-40" />
-            <p>You haven't placed any orders yet.</p>
+            <p>You haven&apos;t placed any orders yet.</p>
             <Link href="/store" className="inline-block mt-4 text-blue-500 hover:text-blue-400 font-medium">
               Start Shopping &rarr;
             </Link>
@@ -86,7 +86,7 @@ export default async function MyOrdersPage() {
                     <div key={item.id} className="flex items-center gap-4">
                       <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 border border-slate-700/50">
                         {item.imageSnapshot ? (
-                          <Image src={`${item.imageSnapshot}?tr=w-100`} alt={item.productName} fill className="object-contain p-1" />
+                          <Image src={`${item.imageSnapshot}?tr=w-100`} alt={item.productName} fill sizes="80px" className="object-contain p-1" />
                         ) : (
                           <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400"><Package size={20} /></div>
                         )}

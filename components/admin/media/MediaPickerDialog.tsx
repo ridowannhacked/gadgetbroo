@@ -142,10 +142,15 @@ export function MediaPickerDialog({
   /* ── Reset on open/close ── */
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(defaultTab);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelected([]);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStagedFiles([]);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUploadQueue([]);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearch("");
     }
     // Cleanup object URLs when dialog closes

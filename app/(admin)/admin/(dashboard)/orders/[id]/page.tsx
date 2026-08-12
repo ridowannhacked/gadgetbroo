@@ -12,11 +12,46 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type OrderItemDetails = {
+  id: string;
+  imageSnapshot: string | null;
+  productName: string;
+  variantName: string;
+  skuAtOrder: string;
+  priceAtOrder: number;
+  quantity: number;
+};
+
+type OrderDetails = {
+  id: string;
+  createdAt: string;
+  status: string;
+  items: OrderItemDetails[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  user: { name: string; email: string };
+  address: {
+    fullName: string;
+    line1: string;
+    line2?: string | null;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    phone: string;
+  };
+  paymentMethod: string;
+  paymentStatus: string;
+  trackingNumber: string | null;
+  adminNotes: string | null;
+};
+
 export default function OrderDetailsPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
   
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   
@@ -119,7 +154,7 @@ export default function OrderDetailsPage() {
               <Package size={16} className="text-blue-400" /> Items Ordered
             </h2>
             <div className="divide-y divide-slate-800/50">
-              {order.items.map((item: any) => (
+              {order.items.map((item: OrderItemDetails) => (
                 <div key={item.id} className="py-4 flex gap-4">
                   <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden shrink-0 border border-slate-700">
                     {item.imageSnapshot ? (

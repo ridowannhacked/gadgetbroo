@@ -41,13 +41,13 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
           </span>
         </h1>
         <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mb-10 font-light">
-          Discover the latest technology designed to push the boundaries of what's possible.
+          Discover the latest technology designed to push the boundaries of what&apos;s possible.
         </p>
       </div>
     );
   }
 
-  const activeBanner = banners[currentIndex];
+  // const activeBanner = banners[currentIndex];
 
   return (
     <div className="absolute inset-0 w-full h-full group">
@@ -60,6 +60,7 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
             src={banner.url}
             alt={banner.title}
             fill
+            sizes="100vw"
             className={`object-cover object-center transition-opacity duration-700 ease-in-out ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}

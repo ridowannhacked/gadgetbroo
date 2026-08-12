@@ -1,9 +1,9 @@
-import Image from 'next/image';
+
 import Link from 'next/link';
 import { getServerSession } from '../helpers/get-servesession';
 import prisma from '../lib/prisma';
 import CartIcon from './storefront/CartIcon';
-import { User as UserIcon, LayoutDashboard, LogOut } from 'lucide-react';
+import { User as UserIcon, LayoutDashboard } from 'lucide-react';
 import { Button } from './ui/button';
 import StoreSearch from './storefront/StoreSearch';
 import LogoutButton from './logoutUser';
@@ -22,6 +22,10 @@ export default async function Navbar() {
     });
   }
 
+  const settings = await prisma.storeSettings.findUnique({
+    where: { id: "global" }
+  });
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -29,7 +33,7 @@ export default async function Navbar() {
         {/* Logo and Mobile Nav */}
         {/* Logo and Mobile Nav */}
         <div className="flex items-center gap-6">
-          <MobileNav />
+          <MobileNav bannerUrl={settings?.bannerUrl} faviconUrl={settings?.faviconUrl} />
 
           {/* Desktop Links */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">

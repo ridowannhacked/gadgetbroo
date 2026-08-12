@@ -266,6 +266,7 @@ export function CreateUserButton({ onSuccess, roles: propsRoles }: CreateUserPro
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) setRoles(data);
+          else if (data && Array.isArray(data.roles)) setRoles(data.roles);
         })
         .catch(() => {});
     }

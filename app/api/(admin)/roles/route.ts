@@ -3,19 +3,27 @@ import prisma from "../../../../lib/prisma";
 import { createRoleSchema } from "../../../../zodSchemas/createRoleSchema";
 import { requireAdmin } from "../../../../lib/rbac";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Check session and role
     const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    const roles = await prisma.role.findMany({
-      include: {
-        permissions: true,
-        users: true
-      }
-    });
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
-    return NextResponse.json(roles);
+    const [roles, total] = await Promise.all([
+      prisma.role.findMany({
+        include: { permissions: true, users: true },
+        orderBy: { createdAt: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.role.count()
+    ]);
+
+    return NextResponse.json({ roles, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error(error);
 

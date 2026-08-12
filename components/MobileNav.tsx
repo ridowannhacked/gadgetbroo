@@ -7,18 +7,25 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Menu, X, Search, Store, Smartphone, Watch, Headphones, Zap, Battery, Home } from "lucide-react";
 import StoreSearch from "./storefront/StoreSearch";
 
-export default function MobileNav() {
+interface MobileNavProps {
+  bannerUrl?: string | null;
+  faviconUrl?: string | null;
+}
+
+export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   // Close sidebar on navigation (e.g., after a search)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOpen(false);
   }, [pathname, searchParams]);
 
@@ -30,18 +37,28 @@ export default function MobileNav() {
           onClick={() => setIsOpen(true)}
           className="md:hidden flex items-center gap-2"
         >
-          <h1 className="text-lg font-bold tracking-wider text-white">
-            G<span className="hidden sm:inline">ADGET</span>
-            <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
-          </h1>
+          {bannerUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bannerUrl} alt="GadgetBroo" className="h-6 w-auto object-contain" />
+          ) : (
+            <h1 className="text-lg font-bold tracking-wider text-white">
+              G<span className="hidden sm:inline">ADGET</span>
+              <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
+            </h1>
+          )}
         </button>
         
         {/* Desktop Logo Link */}
         <Link href="/" className="hidden md:flex items-center gap-2">
-          <h1 className="text-lg font-bold tracking-wider text-white">
-            G<span className="hidden sm:inline">ADGET</span>
-            <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
-          </h1>
+          {bannerUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bannerUrl} alt="GadgetBroo" className="h-6 w-auto object-contain" />
+          ) : (
+            <h1 className="text-lg font-bold tracking-wider text-white">
+              G<span className="hidden sm:inline">ADGET</span>
+              <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
+            </h1>
+          )}
         </Link>
       </div>
 
@@ -57,9 +74,14 @@ export default function MobileNav() {
           {/* Sidebar */}
           <div className="relative w-4/5 max-w-sm bg-[#0a0a0a] border-r border-slate-800 shadow-2xl h-full flex flex-col animate-in slide-in-from-left duration-300">
             <div className="flex items-center justify-between p-5 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-white tracking-wider">
-                G<span className="text-blue-500">B</span>
-              </h2>
+              {faviconUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={faviconUrl} alt="GB" className="h-8 w-auto object-contain" />
+              ) : (
+                <h2 className="text-lg font-bold text-white tracking-wider">
+                  G<span className="text-blue-500">B</span>
+                </h2>
+              )}
               <button 
                 onClick={() => setIsOpen(false)}
                 className="p-2 text-slate-400 hover:text-white rounded-md bg-slate-900"

@@ -12,6 +12,7 @@ export default function CartIcon() {
 
   // Avoid hydration mismatch by rendering after mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

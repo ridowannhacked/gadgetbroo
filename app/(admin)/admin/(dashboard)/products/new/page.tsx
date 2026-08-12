@@ -80,7 +80,13 @@ export default function NewProductPage() {
   useEffect(() => {
     fetch("/api/categories")
       .then((r) => r.json())
-      .then((data) => setCategories(data))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          setCategories(data.categories || []);
+        }
+      })
       .catch(() => toast.error("Failed to load categories"));
   }, []);
 

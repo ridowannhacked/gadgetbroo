@@ -5,7 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function RecentProductsSlider({ products }: { products: any[] }) {
+type SliderProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  images: { mediaFile: { url: string } }[];
+};
+
+export default function RecentProductsSlider({ products }: { products: SliderProduct[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -52,6 +59,7 @@ export default function RecentProductsSlider({ products }: { products: any[] }) 
                   src={`${imageUrl}${imageUrl.includes("?") ? "&" : "?"}tr=w-500,h-500,q-80`}
                   alt={product.name}
                   fill
+                  sizes="(max-width: 640px) 128px, (max-width: 1024px) 224px, 320px"
                   className="object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700"
                 />
               ) : (

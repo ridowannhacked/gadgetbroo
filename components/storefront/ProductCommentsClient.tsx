@@ -1,0 +1,271 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Loader2, User, Send, Trash2, Edit2, ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { useAuthSession } from "@/components/auth/AuthSessionProvider";
+
+type CommentWithUser = {
+  id: string;
+  body: string;
+  userId: string;
+  productId: string;
+  isPublic: boolean;
+  adminReply: string | null;
+  createdAt: string;
+  user: {
+    name: string | null;
+    email: string;
+  };
+};
+
+export default function ProductCommentsClient({ productId }: { productId: string }) {
+  const { user } = useAuthSession();
+  const [comments, setComments] = useState<CommentWithUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [newComment, setNewComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+
+  useEffect(() => {
+    fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, user]);
+
+  async function fetchComments() {
+    try {
+      const res = await fetch(`/api/comments?productId=${productId}`);
+      const data = await res.json();
+      if (data.success) {
+        setComments(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Please login to comment");
+      return;
+    }
+    if (!newComment.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, body: newComment })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Comment posted securely. It is currently private.");
+        setNewComment("");
+        fetchComments();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to post comment");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this comment?")) return;
+    try {
+      const res = await fetch(`/api/comments/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Comment deleted");
+        fetchComments();
+      }
+    } catch {
+      toast.error("Failed to delete comment");
+    }
+  };
+
+  const handleEditSubmit = async (id: string) => {
+    if (!editContent.trim()) return;
+    try {
+      const res = await fetch(`/api/comments/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: editContent })
+      });
+      if (res.ok) {
+        toast.success("Comment updated");
+        setEditingId(null);
+        fetchComments();
+      }
+    } catch {
+      toast.error("Failed to update comment");
+    }
+  };
+
+  return (
+    <div className="mt-16 lg:mt-24 border-t border-slate-800 pt-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        
+        {/* Left Side: Post Comment */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">Q&A / Comments</h2>
+            <p className="text-sm text-slate-400">
+              Have a question or feedback? Leave a comment below. 
+            </p>
+          </div>
+
+          <div className="bg-[#111318] border border-slate-800 rounded-2xl p-6">
+            {!user ? (
+              <div className="text-center py-6">
+                <ShieldAlert className="w-8 h-8 text-slate-500 mx-auto mb-3" />
+                <h3 className="text-slate-300 font-semibold mb-2">Login Required</h3>
+                <p className="text-sm text-slate-500 mb-4">You must be logged in to post a comment securely.</p>
+                <a href="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors">
+                  Login to Comment
+                </a>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-slate-400">
+                    <User size={16} />
+                  </div>
+                  <span className="text-sm font-medium text-slate-300">{user.name}</span>
+                </div>
+                
+                <div>
+                  <textarea
+                    required
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Write your comment securely..."
+                    className="w-full h-24 bg-[#0a0a0a] border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-2">
+                    * Your comment is private by default and visible only to you and store admins.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !newComment.trim()}
+                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                >
+                  {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Post Comment
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side: Comments List */}
+        <div className="lg:col-span-2 space-y-6">
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 text-slate-600 animate-spin" />
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+              <p>No comments yet. Be the first to ask a question!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {comments.map((comment) => (
+                <div key={comment.id} className="bg-[#111318] border border-slate-800/80 rounded-2xl p-5 relative group">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 shrink-0">
+                        <User size={18} />
+                      </div>
+                      <div>
+                        <div className="font-medium text-white flex items-center gap-2">
+                          {comment.user.name}
+                          {!comment.isPublic && (
+                            <span className="text-[10px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded font-medium border border-amber-500/20">
+                              Private
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {format(new Date(comment.createdAt), "MMMM d, yyyy")}
+                        </div>
+                      </div>
+                    </div>
+
+                    {user && user.id === comment.userId && (
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => { setEditingId(comment.id); setEditContent(comment.body); }}
+                          className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(comment.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {editingId === comment.id ? (
+                    <div className="mt-3">
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="w-full h-20 bg-[#0a0a0a] border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors resize-none mb-2"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditSubmit(comment.id)}
+                          className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-500"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="px-3 py-1.5 bg-slate-800 text-white text-xs font-medium rounded hover:bg-slate-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-300 leading-relaxed mt-2 whitespace-pre-wrap">
+                      {comment.body}
+                    </p>
+                  )}
+
+                  {comment.adminReply && (
+                    <div className="mt-4 ml-6 p-4 bg-blue-900/10 border-l-2 border-blue-500 rounded-r-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Admin Reply</span>
+                      </div>
+                      <p className="text-sm text-blue-100/80 whitespace-pre-wrap">
+                        {comment.adminReply}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}

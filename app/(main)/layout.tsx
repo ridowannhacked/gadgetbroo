@@ -2,6 +2,7 @@
 import { getServerSession } from "@/helpers/get-servesession";
 import { AuthSessionProvider } from "@/components/auth/AuthSessionProvider";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/Footer";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession();
@@ -11,8 +12,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       user={session?.user ?? null}
       session={session?.session ?? null}
     >
-      <Navbar />
-      <main>{children}</main>
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+      </div>
     </AuthSessionProvider>
   );
 }

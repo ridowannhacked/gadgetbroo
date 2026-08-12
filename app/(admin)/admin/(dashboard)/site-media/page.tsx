@@ -95,7 +95,7 @@ export default function SiteMediaAdminPage() {
     setNewPlacement(banner.placement);
     setNewLinkUrl(banner.linkUrl || "");
     // Create a mock selectedFile object to satisfy the form state
-    setSelectedFile({ fileId: banner.fileId, url: banner.url, name: banner.title } as any);
+    setSelectedFile({ fileId: banner.fileId, url: banner.url, name: banner.title, fileType: "image" } as MediaFileRecord);
     setShowAddForm(true);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -176,7 +176,7 @@ export default function SiteMediaAdminPage() {
                   <label className="text-xs font-medium text-slate-400">Placement</label>
                   <select 
                     value={newPlacement}
-                    onChange={(e) => setNewPlacement(e.target.value as any)}
+                    onChange={(e) => setNewPlacement(e.target.value as SiteMedia["placement"])}
                     className="w-full bg-[#0b0d0f] border border-slate-700 text-white rounded-md p-2.5 mt-1 text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="HERO_SLIDER">Hero Slider (Main)</option>
@@ -202,7 +202,7 @@ export default function SiteMediaAdminPage() {
                   className="h-40 border-2 border-dashed border-slate-700 rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-slate-800/30 transition-all overflow-hidden relative bg-[#0b0d0f]"
                 >
                   {selectedFile ? (
-                    <Image src={`${selectedFile.url}?tr=w-600`} alt="Selected" fill className="object-cover" />
+                    <Image src={`${selectedFile.url}?tr=w-600`} alt="Selected" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
                   ) : (
                     <div className="flex flex-col items-center text-slate-500">
                       <ImageIcon size={24} className="mb-2" />
@@ -234,7 +234,7 @@ export default function SiteMediaAdminPage() {
             {banners.map((banner) => (
               <div key={banner.id} className="bg-[#12151a] border border-slate-800 rounded-xl overflow-hidden group">
                 <div className="aspect-video relative bg-slate-900 border-b border-slate-800">
-                  <Image src={`${banner.url}?tr=w-600`} alt={banner.title} fill className={`object-cover ${!banner.isActive ? "opacity-40 grayscale" : ""}`} />
+                  <Image src={`${banner.url}?tr=w-600`} alt={banner.title} fill sizes="(max-width: 768px) 100vw, 33vw" className={`object-cover ${!banner.isActive ? "opacity-40 grayscale" : ""}`} />
                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       onClick={() => handleToggleActive(banner)}
