@@ -33,6 +33,7 @@ export default function ProductCommentsClient({ productId }: { productId: string
 
   useEffect(() => {
     fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, user]);
 
   async function fetchComments() {
@@ -87,7 +88,7 @@ export default function ProductCommentsClient({ productId }: { productId: string
         toast.success("Comment deleted");
         fetchComments();
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete comment");
     }
   };
@@ -105,7 +106,7 @@ export default function ProductCommentsClient({ productId }: { productId: string
         setEditingId(null);
         fetchComments();
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to update comment");
     }
   };
