@@ -4,21 +4,28 @@ import { auth, User } from "../../../../lib/auth";
 import { CreateUserSchema } from "../../../../zodSchemas/createUserSchema";
 import { requireAdmin } from "../../../../lib/rbac";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
 
   try {
     const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const allUsers = await prisma.user.findMany({
-      include: {
-        role: true,
-      },
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
-    });
-    if (!allUsers) return NextResponse.json({ error: "Server error" }, { status: 500 })
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        include: { role: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count()
+    ]);
 
-    return NextResponse.json(allUsers)
+    return NextResponse.json({ users, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     return NextResponse.json({ error: "Couldn't fetch data" }, { status: 500 })
   }

@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, data: zone });
   } catch (error: unknown) {
     console.error("Error creating shipping zone:", error);
-    if (error.code === 'P2002') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return NextResponse.json({ success: false, error: "A shipping zone for this state and city already exists." }, { status: 400 });
     }
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });

@@ -179,6 +179,6 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     console.error("Checkout Transaction Error:", error);
     // Return 400 Bad Request with the specific error message (e.g., "Out of stock")
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" || "Failed to process checkout" }, { status: 400 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to process checkout" }, { status: 400 });
   }
 }
