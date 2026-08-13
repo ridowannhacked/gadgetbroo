@@ -28,7 +28,7 @@ cd "$ROOT"
 # a plain rm -rf sidesteps that — a straight recursive delete doesn't have
 # the same race-prone rmdir-then-reinstall dance npm does internally.
 rm -rf node_modules
-npm ci
+npm ci --registry=https://registry.npmjs.org/
 npx prisma generate
 npx prisma migrate deploy
 npm run build   # also copies public/ and .next/static into .next/standalone
