@@ -30,7 +30,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   return {
     title: `${product.name} - GadgetBroo`,
-    description: product.description.substring(0, 160),
+    description: product.description.replace(/<[^>]*>?/gm, '').substring(0, 160),
+    keywords: product.tags?.join(", "),
     openGraph: {
       images: product.images[0]?.mediaFile.url ? [`${product.images[0].mediaFile.url}?tr=w-1200`] : [],
     },
@@ -96,7 +97,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Ensure there's at least one variant available to purchase
   if (product.variants.length === 0) {
     return (
-      <div className="min-h-[70vh] bg-[#0a0a0a] flex items-center justify-center text-slate-300">
+      <div className="min-h-[70vh] bg-background flex items-center justify-center text-muted-foreground">
         This product is currently unavailable.
       </div>
     );
@@ -128,12 +129,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   });
 
   // Sanitize the product object to pass to client
-  // Passing direct Prisma Decimal objects to Client Components can cause warnings, so we map them to numbers
   const serializedProduct = {
     ...product,
+    options: product.options as any,
     variants: product.variants.map((v) => ({
       ...v,
       price: Number(v.price),
+      attributes: v.attributes as Record<string, string> | null,
     }))
   };
 
@@ -142,11 +144,37 @@ export default async function ProductPage({ params }: ProductPageProps) {
     variants: rp.variants.map((v) => ({
       ...v,
       price: Number(v.price),
+      attributes: v.attributes as Record<string, string> | null,
     }))
   }));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.images[0]?.mediaFile.url || "",
+    "description": product.description.replace(/<[^>]*>?/gm, ''),
+    "brand": {
+      "@type": "Brand",
+      "name": product.brand
+    },
+    "keywords": product.tags?.join(", "),
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "BDT",
+      "lowPrice": Math.min(...product.variants.map(v => Number(v.price))),
+      "highPrice": Math.max(...product.variants.map(v => Number(v.price))),
+      "offerCount": product.variants.length,
+      "availability": product.variants.some(v => v.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  };
+
   return (
-    <div className="bg-[#0a0a0a] min-h-screen text-slate-200">
+    <div className="bg-background min-h-screen text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ProductDetailsClient 
         product={serializedProduct} 
         reviews={reviews} 

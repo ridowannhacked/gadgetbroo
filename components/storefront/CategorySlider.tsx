@@ -10,7 +10,7 @@ type CategoryProps = {
   name: string;
   slug: string;
   image: string | null;
-  products: any[];
+  products: { images: { mediaFile: { url: string } }[] }[];
 };
 
 export default function CategorySlider({ categories }: { categories: CategoryProps[] }) {
@@ -112,9 +112,9 @@ export default function CategorySlider({ categories }: { categories: CategoryPro
               href={`/store#${category.slug}`}
               key={`${category.id}-${index}`}
               onDragStart={handleDragStart}
-              className="relative w-44 h-56 sm:w-64 sm:h-80 shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20"
+              className="relative w-44 h-56 sm:w-64 sm:h-80 shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-card border border-border transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 pointer-events-none" />
 
               {catImage ? (
                 <Image
@@ -122,17 +122,17 @@ export default function CategorySlider({ categories }: { categories: CategoryPro
                   alt={category.name}
                   fill
                   sizes="(max-width: 640px) 176px, 256px"
-                  className="object-cover opacity-60 pointer-events-none"
+                  className="object-cover opacity-80 pointer-events-none"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600 pointer-events-none">No Image</div>
+                <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground pointer-events-none">No Image</div>
               )}
 
               <div className="absolute bottom-0 left-0 p-4 sm:p-6 z-20 w-full pointer-events-none">
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{category.name}</h3>
                 <div className="w-full flex items-center justify-between">
-                  <span className="text-[10px] sm:text-xs text-blue-400">View Collection</span>
-                  <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+                  <span className="text-[10px] sm:text-xs text-primary-foreground/90 font-medium bg-primary/80 px-2 py-0.5 rounded backdrop-blur-md">View Collection</span>
+                  <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
                     <ArrowRight size={12} className="sm:w-[14px] sm:h-[14px]" />
                   </span>
                 </div>
@@ -143,8 +143,8 @@ export default function CategorySlider({ categories }: { categories: CategoryPro
       </div>
       
       {/* Scroll Indicators (Fade edges) */}
-      <div className="absolute top-0 left-0 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-[#0d0f14] to-transparent pointer-events-none z-30" />
-      <div className="absolute top-0 right-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-[#0d0f14] to-transparent pointer-events-none z-30" />
+      <div className="absolute top-0 left-0 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-background to-transparent pointer-events-none z-30" />
+      <div className="absolute top-0 right-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-background to-transparent pointer-events-none z-30" />
     </div>
   );
 }

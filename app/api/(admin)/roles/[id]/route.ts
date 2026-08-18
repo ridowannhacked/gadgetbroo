@@ -25,7 +25,7 @@ export async function PATCH(
   if (!role) return NextResponse.json({ error: "Role not found" }, { status: 404 });
 
   // Prevent renaming the locked "admin" or "customer" roles
-  if (role.name === "admin" || role.name === "customer") {
+  if (role.name.toLowerCase() === "admin" || role.name === "customer") {
     return NextResponse.json(
       { error: `The "${role.name}" role name is locked and cannot be changed` },
       { status: 400 }
@@ -68,7 +68,7 @@ export async function DELETE(
   });
 
   if (!role) return NextResponse.json({ error: "Role not found" }, { status: 404 });
-  if (role.name === "admin" || role.name === "customer") {
+  if (role.name.toLowerCase() === "admin" || role.name === "customer") {
     return NextResponse.json({ error: `The "${role.name}" role is system-protected and cannot be deleted` }, { status: 400 });
   }
   if (role._count.users > 0) {

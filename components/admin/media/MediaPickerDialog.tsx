@@ -127,6 +127,9 @@ export function MediaPickerDialog({
   const [selected, setSelected] = useState<MediaFileRecord[]>([]);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   /* ── Staged upload state (LOCAL — no network until "Upload Media" clicked) ── */
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
 
@@ -163,16 +166,17 @@ export function MediaPickerDialog({
   }, [open, defaultTab]);
 
   /* ── Fetch library ── */
-  const fetchLibrary = useCallback(async (q: string, t: TypeFilter) => {
+  const fetchLibrary = useCallback(async (q: string, t: TypeFilter, p: number) => {
     setLibLoading(true);
     try {
-      const params = new URLSearchParams({ limit: "80" });
+      const params = new URLSearchParams({ limit: "16", page: p.toString() });
       if (q) params.set("search", q);
       if (t !== "all") params.set("type", t);
       const res = await fetch(`/api/media?${params}`);
       if (!res.ok) throw new Error("Failed to load media");
       const data = await res.json();
       setFiles(data.files ?? []);
+      setTotalPages(data.totalPages || 1);
     } catch {
       toast.error("Failed to load media library");
     } finally {
@@ -183,9 +187,9 @@ export function MediaPickerDialog({
   useEffect(() => {
     if (!open || activeTab !== "library") return;
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    searchTimeout.current = setTimeout(() => fetchLibrary(search, typeFilter), 250);
+    searchTimeout.current = setTimeout(() => fetchLibrary(search, typeFilter, page), 250);
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
-  }, [open, activeTab, search, typeFilter, fetchLibrary]);
+  }, [open, activeTab, search, typeFilter, page, fetchLibrary]);
 
   /* ── Library selection ── */
   const toggleSelect = (file: MediaFileRecord) => {
@@ -385,7 +389,7 @@ export function MediaPickerDialog({
 
       // Switch to Library tab and pre-select newly uploaded files
       if (newlyUploaded.length > 0) {
-        await fetchLibrary(search, typeFilter);
+        await fetchLibrary(search, typeFilter, 1);
         setSelected(newlyUploaded);
         setActiveTab("library");
       }
@@ -428,7 +432,7 @@ export function MediaPickerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="
-          max-w-5xl w-[95vw] max-h-[90vh] p-0 overflow-hidden flex flex-col
+          max-w-5xl w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col
           bg-[#0d1117] border border-slate-800/80 shadow-2xl rounded-2xl
         "
       >
@@ -438,12 +442,6 @@ export function MediaPickerDialog({
             <DialogTitle className="text-lg font-semibold text-white">
               Media Library
             </DialogTitle>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
-            >
-              <X size={18} />
-            </button>
           </div>
 
           <div className="flex gap-1 mt-4 border-b border-slate-800">
@@ -452,11 +450,10 @@ export function MediaPickerDialog({
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                  activeTab === tab
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${activeTab === tab
                     ? "border-blue-500 text-blue-400"
                     : "border-transparent text-slate-500 hover:text-slate-300"
-                }`}
+                  }`}
               >
                 {tab === "library" ? <LibrarySquare size={14} /> : <CloudUpload size={14} />}
                 {tab === "library" ? "Library" : "Upload New"}
@@ -493,11 +490,10 @@ export function MediaPickerDialog({
                       key={opt.value}
                       type="button"
                       onClick={() => setTypeFilter(opt.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                        typeFilter === opt.value
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${typeFilter === opt.value
                           ? "bg-blue-600 border-blue-500 text-white"
                           : "border-slate-700 text-slate-400 hover:text-white hover:border-slate-600"
-                      }`}
+                        }`}
                     >
                       {opt.label}
                     </button>
@@ -528,12 +524,13 @@ export function MediaPickerDialog({
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-8 gap-3">
                     {visibleFiles.map((file) => {
                       const sel = isSelected(file);
                       const isImg = file.fileType === "image";
                       return (
                         /* STEP 4.4: Selection toggles; hover on selected shows X indicator */
+
                         <button
                           key={file.fileId}
                           type="button"
@@ -597,6 +594,35 @@ export function MediaPickerDialog({
                         </button>
                       );
                     })}
+                  </div>
+                )}
+                
+                {/* Pagination Controls */}
+                {!libLoading && visibleFiles.length > 0 && totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6 pb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1 || libLoading}
+                      onClick={() => setPage(p => p - 1)}
+                      className="border-slate-700 text-slate-300 h-8"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-xs text-slate-400 mx-2">
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages || libLoading}
+                      onClick={() => setPage(p => p + 1)}
+                      className="border-slate-700 text-slate-300 h-8"
+                    >
+                      Next
+                    </Button>
                   </div>
                 )}
               </div>
@@ -717,7 +743,7 @@ export function MediaPickerDialog({
                   <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                     Staged — Review before uploading
                   </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-8 gap-3">
                     {stagedFiles.map((item) => (
                       <div
                         key={item.id}
@@ -805,12 +831,11 @@ export function MediaPickerDialog({
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-slate-300 truncate">{item.name}</p>
-                          <p className={`text-[10px] mt-0.5 ${
-                            item.status === "done" ? "text-emerald-400"
-                            : item.status === "duplicate" ? "text-amber-400"
-                            : item.status === "error" ? "text-red-400"
-                            : "text-slate-500"
-                          }`}>
+                          <p className={`text-[10px] mt-0.5 ${item.status === "done" ? "text-emerald-400"
+                              : item.status === "duplicate" ? "text-amber-400"
+                                : item.status === "error" ? "text-red-400"
+                                  : "text-slate-500"
+                            }`}>
                             {item.status === "hashing" && "Computing SHA-256 hash…"}
                             {item.status === "checking" && "Checking for duplicates…"}
                             {item.status === "uploading" && "Uploading to ImageKit CDN…"}

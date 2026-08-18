@@ -17,14 +17,15 @@ import { useAuthSession, hasPermission } from '../auth/AuthSessionProvider';
 // `resource: null` means the link is always visible (e.g. Dashboard).
 const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin",         resource: null },
+  { label: "POS",       icon: ShoppingCart,    href: "/admin/pos",      resource: "POS" },
   { label: "Category",  icon: Tag,             href: "/admin/category", resource: "Categories" },
   { label: "Products",  icon: Package,         href: "/admin/products", resource: "Products" },
   { label: "Orders",    icon: ShoppingCart,    href: "/admin/orders",   resource: "Orders" },
   { label: "Shipping",  icon: Truck,           href: "/admin/shipping", resource: "Shipping" },
   { label: "Reviews",   icon: Star,            href: "/admin/reviews",  resource: "Reviews" },
   { label: "Comments",  icon: MessageSquare,   href: "/admin/comments", resource: "Reviews" },
-  { label: "Banners",   icon: Image,           href: "/admin/site-media", resource: null }, // Null means all admins can access
-  { label: "Page Editor", icon: FileText,      href: "/admin/pages",    resource: null },
+  { label: "Banners",   icon: Image,           href: "/admin/site-media", resource: "Banners" },
+  { label: "Page Editor", icon: FileText,      href: "/admin/pages",    resource: "Pages" },
   { label: "Settings",  icon: Settings,        href: "/admin/settings", resource: "Settings" },
   { label: "Media",     icon: Image,           href: "/admin/media",    resource: "Media" },
   { label: "Users",     icon: Users,           href: "/admin/users",    resource: "Users" },
@@ -41,7 +42,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
   const router = useRouter();
   const { fullUser } = useAuthSession();
 
-  const isAdmin = fullUser?.role?.name === 'admin';
+  const isAdmin = fullUser?.role?.name?.toLowerCase() === 'admin';
   const permissions = fullUser?.role?.permissions ?? [];
 
   /** Returns true if this nav item should be rendered for the current user */
@@ -65,15 +66,15 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
   };
 
   const sidebarContent = (
-    <div className="flex flex-col justify-between h-full p-3 lg:p-4">
-      <div className="space-y-6 overflow-y-auto">
+    <div className="flex flex-col justify-between h-full p-3 lg:py-4 lg:pl-3 lg:pr-1.5 overflow-x-hidden">
+      <div className="space-y-6 overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
         {/* Brand Logo Header */}
         <div className="px-2 py-2 flex items-center justify-between">
           <div>
             <Link href='/'>
               <h1 className="text-lg lg:text-xl font-bold tracking-wider text-white">
-                G<span className="inline md:hidden lg:inline">ADGET</span>
-                <span className="text-blue-500">B<span className="inline md:hidden lg:inline">ROO</span></span>
+                G<span className="hidden lg:inline">ADGET</span>
+                <span className="text-blue-500">B<span className="hidden lg:inline">ROO</span></span>
               </h1>
             </Link>
             <p className="text-[10px] lg:text-[11px] text-gray-500 hidden lg:block">Admin Panel</p>
@@ -88,7 +89,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
         </div>
 
         {/* Primary Navigation — filtered by canView permissions */}
-        <nav className="space-y-1">
+        <nav className="space-y-0.5">
           {NAV_ITEMS.filter((item) => canSeeLink(item.resource)).map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href ||
@@ -100,7 +101,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 title={item.label}
-                className={`group relative flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`group relative flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/40'
@@ -121,7 +122,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
 
       {/* Role badge — shows the current user's role name */}
       {fullUser?.role && (
-        <div className="px-3 pb-1">
+        <div className="px-3 pb-1 mt-4">
           <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700 truncate max-w-full">
             <Shield size={10} className="text-blue-400 shrink-0" />
             <span className="truncate">{fullUser.role.name}</span>
@@ -130,13 +131,13 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
       )}
 
       {/* Profile & Sign Out Section */}
-      <div className="border-t border-gray-800/50 pt-4 space-y-1">
+      <div className="border-t border-gray-800/50 pt-3 mt-2 space-y-0.5">
         {isAdmin && (
           <Link
             href="/admin/profile"
             onClick={() => setMobileMenuOpen(false)}
             title="Profile"
-            className="flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/40 transition-colors"
+            className="flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/40 transition-colors"
           >
             <User size={18} className="shrink-0" />
             <span className="inline md:hidden lg:inline">Profile</span>
@@ -144,7 +145,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
         )}
         <button
           title="Sign Out"
-          className="w-full flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
+          className="w-full flex items-center justify-start md:justify-center lg:justify-start gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
           onClick={signoutUser}
         >
           <LogOut size={18} className="shrink-0" />
@@ -157,7 +158,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
   return (
     <>
       {/* 1. Desktop & Tablet Persistent Sidebar */}
-      <aside className="hidden md:flex flex-col w-16 lg:w-64 bg-[#070a12]/80 backdrop-blur-md border-r border-gray-800/50 h-full transition-all duration-300 shrink-0">
+      <aside className="hidden md:flex flex-col w-16 lg:w-56 bg-[#070a12]/80 backdrop-blur-md border-r border-gray-800/50 h-full transition-all duration-300 shrink-0">
         {sidebarContent}
       </aside>
 
@@ -171,7 +172,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarPr
 
       {/* 3. Mobile Slide-Over Drawer */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#070a12] z-50 transform transition-transform duration-300 ease-in-out md:hidden border-r border-gray-800/50 ${
+        className={`fixed top-0 left-0 bottom-0 w-56 bg-[#070a12] z-50 transform transition-transform duration-300 ease-in-out md:hidden border-r border-gray-800/50 ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

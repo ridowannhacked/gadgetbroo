@@ -86,7 +86,7 @@ export async function DELETE(
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  if (user.role?.name === "admin") {
+  if (user.role?.name?.toLowerCase() === "admin") {
     return NextResponse.json({ error: "Cannot delete an admin account" }, { status: 400 });
   }
 

@@ -11,6 +11,9 @@ import {
   type MediaFileRecord,
 } from "@/components/admin/media/MediaPickerDialog";
 
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import URLPagination from "@/components/URLPagination";
+
 type MediaFile = {
   fileId: string;
   name: string;
@@ -26,12 +29,19 @@ type MediaFile = {
 };
 
 export default function MediaPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "image" | "video">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  
+  const page = Number(searchParams.get("page")) || 1;
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchMedia = useCallback(async () => {
     setLoading(true);
@@ -39,18 +49,20 @@ export default function MediaPage() {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (filter !== "all") params.set("type", filter);
-      params.set("limit", "80");
+      params.set("limit", "15");
+      params.set("page", page.toString());
 
       const res = await fetch(`/api/media?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load");
       setFiles(data.files ?? []);
+      setTotalPages(data.totalPages || 1);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load media");
     } finally {
       setLoading(false);
     }
-  }, [search, filter]);
+  }, [search, filter, page]);
 
   useEffect(() => {
     fetchMedia();
@@ -98,16 +110,22 @@ export default function MediaPage() {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   };
 
+  const updateFilter = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
   return (
-    <div className="min-h-screen bg-[#0b0d0f] text-slate-200 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 flex flex-col">
+      <div className="max-w-[1400px] w-full mx-auto flex flex-col flex-1 space-y-6">
         {/* ── Header ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">Media Library</h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Media Library</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               All assets indexed in database from ImageKit{" "}
-              <code className="text-slate-300">/gadgetbroo</code>
+              <code className="text-muted-foreground">/gadgetbroo</code>
             </p>
           </div>
           <div className="flex gap-2">
@@ -116,7 +134,7 @@ export default function MediaPage() {
               size="sm"
               onClick={fetchMedia}
               disabled={loading}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Refresh"}
             </Button>
@@ -124,7 +142,7 @@ export default function MediaPage() {
               id="add-media-btn"
               size="sm"
               onClick={() => setPickerOpen(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white gap-2"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
             >
               <Plus className="w-4 h-4" />
               Add Media
@@ -133,14 +151,14 @@ export default function MediaPage() {
         </div>
 
         {/* ── Filters ── */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); updateFilter(); }}
               placeholder="Search by filename…"
-              className="pl-9 bg-[#12151a] border-slate-700 text-slate-200"
+              className="pl-9 bg-card border-border text-foreground"
             />
           </div>
           <div className="flex gap-2">
@@ -148,11 +166,11 @@ export default function MediaPage() {
               <button
                 key={t}
                 type="button"
-                onClick={() => setFilter(t)}
+                onClick={() => { setFilter(t); updateFilter(); }}
                 className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
                   filter === t
-                    ? "bg-blue-600 border-blue-500 text-white"
-                    : "border-slate-700 text-slate-400 hover:text-white"
+                    ? "bg-blue-600 border-blue-500 text-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t === "all" ? "All" : t === "image" ? "Images" : "Videos"}
@@ -162,89 +180,98 @@ export default function MediaPage() {
         </div>
 
         {/* ── Grid ── */}
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
-          </div>
-        ) : files.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-500">
-            <ImageIcon className="w-12 h-12 opacity-40" />
-            <p className="text-sm">No media found</p>
-            <Button
-              size="sm"
-              onClick={() => setPickerOpen(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white gap-2 mt-2"
-            >
-              <Plus className="w-4 h-4" />
-              Upload your first file
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {files.map((file) => {
-              const isImage = file.fileType === "image";
-              return (
-                <div
-                  key={file.fileId}
-                  className="group relative rounded-xl border border-slate-800 bg-[#12151a] overflow-hidden hover:border-slate-600 transition-colors"
-                >
-                  <div className="aspect-square relative bg-slate-900">
-                    {isImage ? (
-                      <Image
-                        src={`${file.url}${file.url.includes("?") ? "&" : "?"}tr=w-400`}
-                        alt={file.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, 20vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-500">
-                        <Film className="w-8 h-8" />
-                        <span className="text-[10px] uppercase tracking-wider">Video</span>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(file)}
-                      disabled={deletingId === file.fileId || file.products.length > 0}
-                      title={
-                        file.products.length > 0
-                          ? `Used by ${file.products.map((p) => p.name).join(", ")}`
-                          : "Delete permanently"
-                      }
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-slate-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
-                    >
-                      {deletingId === file.fileId ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        <div className="flex-1">
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : files.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-muted-foreground">
+              <ImageIcon className="w-12 h-12 opacity-40" />
+              <p className="text-sm">No media found</p>
+              <Button
+                size="sm"
+                onClick={() => setPickerOpen(true)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 mt-2"
+              >
+                <Plus className="w-4 h-4" />
+                Upload your first file
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              {files.map((file) => {
+                const isImage = file.fileType === "image";
+                return (
+                  <div
+                    key={file.fileId}
+                    className="group relative rounded-xl border border-border bg-card overflow-hidden hover:border-slate-600 transition-colors"
+                  >
+                    <div className="aspect-square relative bg-card">
+                      {isImage ? (
+                        <Image
+                          src={`${file.url}${file.url.includes("?") ? "&" : "?"}tr=w-400`}
+                          alt={file.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 50vw, 20vw"
+                        />
                       ) : (
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                          <Film className="w-8 h-8" />
+                          <span className="text-[10px] uppercase tracking-wider">Video</span>
+                        </div>
                       )}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(file)}
+                        disabled={deletingId === file.fileId || file.products.length > 0}
+                        title={
+                          file.products.length > 0
+                            ? `Used by ${file.products.map((p) => p.name).join(", ")}`
+                            : "Delete permanently"
+                        }
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                      >
+                        {deletingId === file.fileId ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                    <div className="p-2.5 space-y-1">
+                      <p className="text-xs text-foreground truncate" title={file.name}>
+                        {file.name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatSize(file.size)}
+                        {file.width && file.height ? ` · ${file.width}×${file.height}` : ""}
+                      </p>
+                      {file.products.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {file.products.map((p) => (
+                            <p key={p.id} className="text-[10px] text-sky-400 truncate">
+                              {p.isPrimary ? "★ " : ""}
+                              {p.name}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-amber-500/70">Unlinked</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="p-2.5 space-y-1">
-                    <p className="text-xs text-slate-200 truncate" title={file.name}>
-                      {file.name}
-                    </p>
-                    <p className="text-[10px] text-slate-500">
-                      {formatSize(file.size)}
-                      {file.width && file.height ? ` · ${file.width}×${file.height}` : ""}
-                    </p>
-                    {file.products.length > 0 ? (
-                      <div className="space-y-0.5">
-                        {file.products.map((p) => (
-                          <p key={p.id} className="text-[10px] text-sky-400 truncate">
-                            {p.isPrimary ? "★ " : ""}
-                            {p.name}
-                          </p>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[10px] text-amber-500/70">Unlinked</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+        
+        {/* Pagination Controls */}
+        {!loading && files.length > 0 && totalPages > 1 && (
+          <div className="mt-auto pt-6 border-t border-border">
+            <URLPagination currentPage={page} totalPages={totalPages} />
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../lib/prisma";
+import { Prisma } from "../../../../../src/generated/prisma/client";
 import ImageKit from "imagekit";
 import { updateProductSchema } from "../../../../../zodSchemas/productSchema";
 import { checkPermission } from "../../../../../lib/rbac";
@@ -59,7 +60,7 @@ export async function PATCH(
     }
 
     if (variants && variants.length > 0) {
-      const skus = variants.map((v) => v.sku);
+      const skus = variants.map((v) => v.sku).filter(Boolean) as string[];
       const existingSkus = await prisma.productVariant.findMany({
         where: { sku: { in: skus }, productId: { not: id } },
         select: { sku: true },
@@ -68,45 +69,76 @@ export async function PATCH(
     }
 
     const updatedProduct = await prisma.$transaction(async (tx) => {
-      if (variants) {
+      // Auto-generate SKUs and Names if missing
+      const processedVariants = variants ? variants.map((v, index) => {
+        let variantName = v.name;
+        if (!variantName) {
+          variantName = v.attributes && Object.values(v.attributes).length > 0 
+            ? Object.values(v.attributes).join(" - ") 
+            : "Default Variant";
+        }
+        
+        let sku = v.sku;
+        if (!sku) {
+          const baseSlug = productData.slug || id.substring(0, 8);
+          let attrHash = index.toString().padStart(2, '0');
+          if (v.attributes && Object.keys(v.attributes).length > 0) {
+            const crypto = require("crypto");
+            attrHash = crypto.createHash('md5').update(JSON.stringify(v.attributes)).digest('hex').substring(0, 6).toUpperCase();
+          }
+          sku = `${baseSlug.toUpperCase().substring(0, 10)}-${attrHash}`.replace(/[^A-Z0-9-]/g, "");
+        }
+
+        return { ...v, name: variantName, sku };
+      }) : undefined;
+
+      if (processedVariants) {
         const existingVariants = await tx.productVariant.findMany({ where: { productId: id, isDeleted: false } });
         const existingVariantIds = existingVariants.map(v => v.id);
-        const incomingIds = variants.map(v => v.id).filter(Boolean) as string[];
+        const incomingIds = processedVariants.map(v => v.id).filter(Boolean) as string[];
 
         const variantsToDelete = existingVariantIds.filter(vId => !incomingIds.includes(vId));
         
         for (const vId of variantsToDelete) {
           const hasOrders = await tx.orderItem.count({ where: { variantId: vId } });
           if (hasOrders > 0) {
-            await tx.productVariant.update({ where: { id: vId }, data: { isDeleted: true, deletedAt: new Date() } });
+            await tx.productVariant.update({ where: { id: vId }, data: { isDeleted: true, deletedAt: new Date(), sku: `del-${vId}` } });
           } else {
             await tx.productVariant.delete({ where: { id: vId } });
           }
         }
 
-        for (const v of variants) {
+        for (const v of processedVariants) {
           if (v.id) {
             await tx.productVariant.update({
               where: { id: v.id },
-              data: { name: v.name, sku: v.sku, price: v.price, stock: v.stock, color: v.color, storage: v.storage, size: v.size, isActive: v.isActive }
+              data: { name: v.name, sku: v.sku, price: v.price, stock: v.stock, attributes: v.attributes ?? Prisma.JsonNull, isActive: v.isActive }
             });
           } else {
             await tx.productVariant.create({
-              data: { ...v, price: v.price, productId: id }
+              data: { name: v.name, sku: v.sku!, price: v.price, stock: v.stock, attributes: v.attributes ?? Prisma.JsonNull, isActive: v.isActive, productId: id }
             });
           }
         }
       }
 
+      // Convert options and tags if necessary
+      const updateData: any = { ...productData };
+      if (updateData.options === null) updateData.options = Prisma.JsonNull;
+      if (updateData.options && typeof updateData.options === 'object') {
+        updateData.options = updateData.options; // JSONB
+      }
+
       return await tx.product.update({
         where: { id },
-        data: productData,
+        data: updateData,
         include: { variants: { where: { isDeleted: false } } }
       });
     });
 
     return NextResponse.json({ product: updatedProduct });
   } catch (error) {
+    console.error("PATCH /api/products/[id] error:", error);
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
@@ -132,10 +164,13 @@ export async function DELETE(
 
     const orderItemCount = product.variants.reduce((sum, v) => sum + v._count.orderItems, 0);
     if (orderItemCount > 0) {
-      await prisma.$transaction([
-        prisma.product.update({ where: { id }, data: { isDeleted: true, deletedAt: new Date() } }),
-        prisma.productVariant.updateMany({ where: { productId: id }, data: { isDeleted: true, deletedAt: new Date() } })
-      ]);
+      await prisma.$transaction(async (tx) => {
+        await tx.product.update({ where: { id }, data: { isDeleted: true, deletedAt: new Date(), slug: `del-${id}` } });
+        const variants = await tx.productVariant.findMany({ where: { productId: id } });
+        for (const v of variants) {
+          await tx.productVariant.update({ where: { id: v.id }, data: { isDeleted: true, deletedAt: new Date(), sku: `del-${v.id}` } });
+        }
+      });
       return NextResponse.json({ success: true, message: "Product soft-deleted because it exists in previous orders.", softDeleted: true });
     }
 

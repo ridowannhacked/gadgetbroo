@@ -84,7 +84,7 @@ export default function ProfilePage() {
 
   if (fullUser?.role?.name !== "admin") {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400">
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
         You do not have permission to view this page.
       </div>
     );
@@ -93,10 +93,10 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 mt-2">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
           Admin Profile
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Manage your personal details and security settings
         </p>
       </div>
@@ -104,42 +104,42 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* Profile Details Form */}
-        <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-blue-500/10 rounded-lg text-blue-400">
               <UserCircle2 size={20} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">Personal Details</h2>
-              <p className="text-[11px] text-slate-400">Update your name and email address</p>
+              <h2 className="text-sm font-semibold text-foreground">Personal Details</h2>
+              <p className="text-[11px] text-muted-foreground">Update your name and email address</p>
             </div>
           </div>
 
           <form onSubmit={handleUpdateDetails} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-xs text-slate-300">Full Name</Label>
+              <Label htmlFor="name" className="text-xs text-muted-foreground">Full Name</Label>
               <div className="relative">
-                <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-9 bg-slate-900/50 border-slate-800 text-slate-200"
+                  className="pl-9 bg-card/50 border-border text-foreground"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs text-slate-300">Email Address</Label>
+              <Label htmlFor="email" className="text-xs text-muted-foreground">Email Address</Label>
               <div className="relative">
-                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-9 bg-slate-900/50 border-slate-800 text-slate-200"
+                  className="pl-9 bg-card/50 border-border text-foreground"
                   required
                 />
               </div>
@@ -147,8 +147,8 @@ export default function ProfilePage() {
             
             {fullUser?.role && (
                <div className="pt-2">
-                 <Label className="text-xs text-slate-400 mb-1.5 block">Current Role</Label>
-                 <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                 <Label className="text-xs text-muted-foreground mb-1.5 block">Current Role</Label>
+                 <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted text-muted-foreground border border-border">
                    {fullUser.role.name}
                  </span>
                </div>
@@ -157,7 +157,7 @@ export default function ProfilePage() {
             <Button
               type="submit"
               disabled={savingDetails || (name === user?.name && email === user?.email)}
-              className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white transition-all"
+              className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground transition-all"
             >
               {savingDetails ? <Loader2 size={16} className="animate-spin" /> : "Save Details"}
             </Button>
@@ -165,50 +165,60 @@ export default function ProfilePage() {
         </div>
 
         {/* Security / Password Form */}
-        <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2.5 bg-emerald-500/10 rounded-lg text-emerald-400">
               <KeyRound size={20} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white">Security</h2>
-              <p className="text-[11px] text-slate-400">Change your account password</p>
+              <h2 className="text-sm font-semibold text-foreground">Security</h2>
+              <p className="text-[11px] text-muted-foreground">Change your account password</p>
             </div>
           </div>
 
-          <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <form onSubmit={handleUpdatePassword} className="space-y-4" autoComplete="off">
+            {/* Fake inputs to trap aggressive browser autofill */}
+            <input type="text" name="fakeusernameremembered" style={{display: 'none'}} />
+            <input type="password" name="fakepasswordremembered" style={{display: 'none'}} />
+
             <div className="space-y-1.5">
-              <Label htmlFor="current-password" className="text-xs text-slate-300">Current Password</Label>
+              <Label htmlFor="current-password" className="text-xs text-muted-foreground">Current Password</Label>
               <PasswordInput
                 id="current-password"
+                name="current_password_input"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Enter current password"
-                className="bg-slate-900/50 border-slate-800 text-slate-200"
+                className="bg-card/50 border-border text-foreground"
+                autoComplete="new-password"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="new-password" className="text-xs text-slate-300">New Password</Label>
+              <Label htmlFor="new-password" className="text-xs text-muted-foreground">New Password</Label>
               <PasswordInput
                 id="new-password"
+                name="new_password_input"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Minimum 8 characters"
-                className="bg-slate-900/50 border-slate-800 text-slate-200"
+                className="bg-card/50 border-border text-foreground"
+                autoComplete="new-password"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="confirm-password" className="text-xs text-slate-300">Confirm New Password</Label>
+              <Label htmlFor="confirm-password" className="text-xs text-muted-foreground">Confirm New Password</Label>
               <PasswordInput
                 id="confirm-password"
+                name="confirm_password_input"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter new password"
-                className="bg-slate-900/50 border-slate-800 text-slate-200"
+                className="bg-card/50 border-border text-foreground"
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -216,7 +226,7 @@ export default function ProfilePage() {
             <Button
               type="submit"
               disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
-              className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white transition-all"
+              className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-foreground transition-all"
             >
               {savingPassword ? <Loader2 size={16} className="animate-spin" /> : "Update Password"}
             </Button>

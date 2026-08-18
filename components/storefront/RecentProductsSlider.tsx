@@ -29,7 +29,7 @@ export default function RecentProductsSlider({ products }: { products: SliderPro
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % products.length);
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto h-56 sm:h-80 lg:h-[400px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#0f1219] to-[#07090e] border border-slate-800/60 shadow-2xl group">
+    <div className="relative w-full max-w-7xl mx-auto h-56 sm:h-80 lg:h-[400px] rounded-3xl overflow-hidden bg-card border border-border shadow-2xl group">
       {products.map((product, index) => {
         const imageUrl = product.images[0]?.mediaFile.url;
         return (
@@ -40,15 +40,15 @@ export default function RecentProductsSlider({ products }: { products: SliderPro
             }`}
           >
             <div className="flex-1 pr-4 sm:pr-8">
-              <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-md mb-3 sm:mb-4">
+              <span className="inline-block px-3 py-1 bg-primary/20 text-primary text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-md mb-3 sm:mb-4">
                 New Arrival
               </span>
-              <h3 className="text-xl sm:text-3xl lg:text-5xl font-bold text-white mb-3 sm:mb-6 line-clamp-2 leading-tight">
+              <h3 className="text-xl sm:text-3xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-6 line-clamp-2 leading-tight">
                 {product.name}
               </h3>
               <Link 
                 href={`/product/${product.slug}`}
-                className="inline-block bg-blue-600 hover:bg-blue-500 text-white text-sm sm:text-base font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                className="inline-block bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:text-base font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full transition-all shadow-lg shadow-primary/30"
               >
                 Shop Now
               </Link>
@@ -63,7 +63,7 @@ export default function RecentProductsSlider({ products }: { products: SliderPro
                   className="object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-800 rounded-xl flex items-center justify-center text-xs text-slate-500">
+                <div className="w-full h-full bg-muted rounded-xl flex items-center justify-center text-xs text-muted-foreground">
                   No Image
                 </div>
               )}
@@ -76,13 +76,13 @@ export default function RecentProductsSlider({ products }: { products: SliderPro
         <>
           <button
             onClick={prevSlide}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 hover:bg-black/80 transition-all"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md border border-border opacity-0 group-hover:opacity-100 hover:bg-background/80 transition-all"
           >
             <ChevronLeft size={16} />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 hover:bg-black/80 transition-all"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md border border-border opacity-0 group-hover:opacity-100 hover:bg-background/80 transition-all"
           >
             <ChevronRight size={16} />
           </button>
@@ -93,7 +93,7 @@ export default function RecentProductsSlider({ products }: { products: SliderPro
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 className={`transition-all duration-300 rounded-full ${
-                  index === currentIndex ? "w-4 h-1.5 bg-blue-500" : "w-1.5 h-1.5 bg-slate-600 hover:bg-slate-400"
+                  index === currentIndex ? "w-4 h-1.5 bg-primary" : "w-1.5 h-1.5 bg-muted-foreground/50 hover:bg-muted-foreground"
                 }`}
               />
             ))}

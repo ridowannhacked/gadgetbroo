@@ -34,8 +34,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type"); // "image" | "video" | null
+    const page = Number(searchParams.get("page") || 1);
     const limit = Math.min(Number(searchParams.get("limit") || 60), 100);
-    const skip = Number(searchParams.get("skip") || 0);
+    const skip = (page - 1) * limit;
 
     const where = {
       AND: [
@@ -82,7 +83,9 @@ export async function GET(request: NextRequest) {
       })),
     }));
 
-    return NextResponse.json({ files: formattedFiles, total, skip, limit });
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({ files: formattedFiles, total, page, limit, totalPages });
   } catch (error) {
     console.error("Media GET error:", error);
     return NextResponse.json(

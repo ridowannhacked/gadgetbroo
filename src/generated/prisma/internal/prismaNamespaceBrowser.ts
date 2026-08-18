@@ -72,7 +72,11 @@ export const ModelName = {
   ShippingZone: 'ShippingZone',
   Comment: 'Comment',
   Page: 'Page',
-  StoreSettings: 'StoreSettings'
+  StoreSettings: 'StoreSettings',
+  Cart: 'Cart',
+  CartItem: 'CartItem',
+  AnalyticsEvent: 'AnalyticsEvent',
+  PageView: 'PageView'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -208,6 +212,9 @@ export const ProductScalarFieldEnum = {
   isFeatured: 'isFeatured',
   isDeleted: 'isDeleted',
   deletedAt: 'deletedAt',
+  tags: 'tags',
+  youtubeUrls: 'youtubeUrls',
+  options: 'options',
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -220,9 +227,7 @@ export const ProductVariantScalarFieldEnum = {
   id: 'id',
   name: 'name',
   productId: 'productId',
-  color: 'color',
-  size: 'size',
-  storage: 'storage',
+  attributes: 'attributes',
   sku: 'sku',
   price: 'price',
   stock: 'stock',
@@ -279,6 +284,8 @@ export const AddressScalarFieldEnum = {
   postalCode: 'postalCode',
   country: 'country',
   isDefault: 'isDefault',
+  isDeleted: 'isDeleted',
+  deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -290,6 +297,10 @@ export const OrderScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   addressId: 'addressId',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  customerAddress: 'customerAddress',
+  orderSource: 'orderSource',
   status: 'status',
   paymentStatus: 'paymentStatus',
   paymentMethod: 'paymentMethod',
@@ -419,6 +430,57 @@ export const StoreSettingsScalarFieldEnum = {
 export type StoreSettingsScalarFieldEnum = (typeof StoreSettingsScalarFieldEnum)[keyof typeof StoreSettingsScalarFieldEnum]
 
 
+export const CartScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CartScalarFieldEnum = (typeof CartScalarFieldEnum)[keyof typeof CartScalarFieldEnum]
+
+
+export const CartItemScalarFieldEnum = {
+  id: 'id',
+  cartId: 'cartId',
+  variantId: 'variantId',
+  quantity: 'quantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CartItemScalarFieldEnum = (typeof CartItemScalarFieldEnum)[keyof typeof CartItemScalarFieldEnum]
+
+
+export const AnalyticsEventScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  ip: 'ip',
+  event: 'event',
+  page: 'page',
+  data: 'data',
+  createdAt: 'createdAt'
+} as const
+
+export type AnalyticsEventScalarFieldEnum = (typeof AnalyticsEventScalarFieldEnum)[keyof typeof AnalyticsEventScalarFieldEnum]
+
+
+export const PageViewScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  ip: 'ip',
+  country: 'country',
+  city: 'city',
+  page: 'page',
+  referrer: 'referrer',
+  device: 'device',
+  browser: 'browser',
+  createdAt: 'createdAt'
+} as const
+
+export type PageViewScalarFieldEnum = (typeof PageViewScalarFieldEnum)[keyof typeof PageViewScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -433,6 +495,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

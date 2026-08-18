@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "@/helpers/get-servesession";
 import { checkPermission } from "@/lib/rbac";
+import { createReviewSchema } from "@/zodSchemas/reviewSchema";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,11 +13,13 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id;
 
     const body = await request.json();
-    const { productId, rating, title, content } = body;
-
-    if (!productId || !rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: "Invalid rating or product" }, { status: 400 });
+    const parsed = createReviewSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
+
+    const { productId, rating, title, content } = parsed.data;
 
     // Check if the user has purchased this product and it was DELIVERED
     // A user might have bought multiple variants of the same product, we just need one delivered order item.

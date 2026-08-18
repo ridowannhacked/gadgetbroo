@@ -127,3 +127,23 @@ export type Page = Prisma.PageModel
  * 
  */
 export type StoreSettings = Prisma.StoreSettingsModel
+/**
+ * Model Cart
+ * 
+ */
+export type Cart = Prisma.CartModel
+/**
+ * Model CartItem
+ * 
+ */
+export type CartItem = Prisma.CartItemModel
+/**
+ * Model AnalyticsEvent
+ * 
+ */
+export type AnalyticsEvent = Prisma.AnalyticsEventModel
+/**
+ * Model PageView
+ * 
+ */
+export type PageView = Prisma.PageViewModel

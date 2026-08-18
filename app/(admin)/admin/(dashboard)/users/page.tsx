@@ -91,7 +91,7 @@ function EditUserModal({
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
             Update email address and role for{" "}
-            <span className="text-white font-medium">{user.name}</span>.
+            <span className="text-foreground font-medium">{user.name}</span>.
           </DialogDescription>
         </DialogHeader>
 
@@ -200,7 +200,7 @@ function ChangePasswordModal({
           </DialogTitle>
           <DialogDescription>
             Administrative password override for{" "}
-            <span className="text-white font-medium">{user.email}</span>.{" "}
+            <span className="text-foreground font-medium">{user.email}</span>.{" "}
             <span className="text-amber-400">
               This bypasses email verification and takes effect immediately.
             </span>
@@ -218,7 +218,7 @@ function ChangePasswordModal({
               autoComplete="new-password"
             />
             {passwordError && (
-              <p className="text-[11px] text-red-400">{passwordError}</p>
+              <p className="text-[11px] text-destructive">{passwordError}</p>
             )}
           </div>
 
@@ -232,7 +232,7 @@ function ChangePasswordModal({
               autoComplete="new-password"
             />
             {confirm && newPassword !== confirm && (
-              <p className="text-[11px] text-red-400">Passwords do not match</p>
+              <p className="text-[11px] text-destructive">Passwords do not match</p>
             )}
           </div>
 
@@ -248,7 +248,7 @@ function ChangePasswordModal({
             <Button
               onClick={handleSave}
               disabled={saving || !passwordResult.success || newPassword !== confirm}
-              className="gap-2 bg-amber-600 hover:bg-amber-500 text-white"
+              className="gap-2 bg-amber-600 hover:bg-amber-500 text-foreground"
             >
               {saving && <Loader2 size={14} className="animate-spin" />}
               <KeyRound size={14} />
@@ -299,7 +299,7 @@ export default function UsersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-slate-400" size={24} />
+        <Loader2 className="animate-spin text-muted-foreground" size={24} />
       </div>
     );
   }
@@ -309,10 +309,10 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mt-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
             User Management
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Manage admin users, assign roles, and override credentials
           </p>
         </div>
@@ -320,10 +320,10 @@ export default function UsersPage() {
       </div>
 
       {/* Table */}
-      <div className="border border-slate-800/60 rounded-xl bg-[#0d1017] overflow-hidden">
+      <div className="border border-border rounded-xl bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[640px]">
-            <thead className="border-b border-slate-800 text-slate-500 text-[11px] uppercase tracking-wider">
+            <thead className="border-b border-border text-muted-foreground text-[11px] uppercase tracking-wider">
               <tr>
                 <th className="px-5 py-3.5">User</th>
                 <th className="px-5 py-3.5">Email</th>
@@ -332,13 +332,13 @@ export default function UsersPage() {
                 <th className="px-5 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 text-slate-300">
+            <tbody className="divide-y divide-border text-muted-foreground">
               {usersData.map((user) => (
                 <tr key={user.id} className="hover:bg-white/[0.02] transition-colors">
                   {/* User column */}
-                  <td className="px-5 py-3.5 font-medium text-slate-200">
+                  <td className="px-5 py-3.5 font-medium text-foreground">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-muted border border-border flex items-center justify-center shrink-0">
                         {user.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -347,7 +347,7 @@ export default function UsersPage() {
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          <UserCircle2 size={14} className="text-slate-500" />
+                          <UserCircle2 size={14} className="text-muted-foreground" />
                         )}
                       </div>
                       <span className="truncate max-w-[140px]">{user.name}</span>
@@ -355,19 +355,19 @@ export default function UsersPage() {
                   </td>
 
                   {/* Email */}
-                  <td className="px-5 py-3.5 text-slate-400">{user.email}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">{user.email}</td>
 
                   {/* Role badge */}
                   <td className="px-5 py-3.5">
                     {user.role ? (
                       <span
                         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium ${
-                          user.role.name === "admin"
+                          user.role.name.toLowerCase() === "admin"
                             ? "text-cyan-400 border border-cyan-500/30 bg-cyan-500/10"
                             : "text-blue-300 border border-blue-500/30 bg-blue-600/20"
                         }`}
                       >
-                        {user.role.name === "admin" && <Crown size={10} />}
+                        {user.role.name.toLowerCase() === "admin" && <Crown size={10} />}
                         {user.role.name}
                       </span>
                     ) : (
@@ -376,7 +376,7 @@ export default function UsersPage() {
                   </td>
 
                   {/* Joined */}
-                  <td className="px-5 py-3.5 text-slate-500">
+                  <td className="px-5 py-3.5 text-muted-foreground">
                     {format(new Date(user.createdAt), "d MMM yyyy")}
                   </td>
 
@@ -386,7 +386,7 @@ export default function UsersPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                             title="User actions"
                           >
                             <MoreHorizontal size={15} />
@@ -433,7 +433,7 @@ export default function UsersPage() {
         </div>
 
         {usersData.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
             <UserCircle2 size={32} className="opacity-40" />
             <p className="text-sm">No users yet</p>
           </div>

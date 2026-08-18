@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { handleSignOut } from "../helpers/signout";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 
 
 export default function LogoutButton() {
@@ -22,8 +23,9 @@ export default function LogoutButton() {
     }
   };
   return (
-    <Button className="hover:text-white hover:bg-red-700 " onClick={signoutUser}>
-      Logout
+    <Button variant="ghost" className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground px-2 sm:px-4" onClick={signoutUser}>
+      <LogOut size={18} className="sm:hidden" />
+      <span className="hidden sm:inline">Logout</span>
     </Button>
   );
 }

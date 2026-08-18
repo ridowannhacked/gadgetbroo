@@ -9,17 +9,30 @@ import StoreSearch from './storefront/StoreSearch';
 import LogoutButton from './logoutUser';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import MobileNav from './MobileNav';
+import { ThemeToggle } from './ThemeToggle';
 
 export default async function Navbar() {
   const session = await getServerSession();
   const user = session?.user;
 
   let fullUser = null;
+  let hasAdminAccess = false;
+  
   if (user?.id) {
     fullUser = await prisma.user.findUnique({
       where: { id: user.id },
-      include: { role: true },
+      include: { role: { include: { permissions: true } } },
     });
+
+    if (fullUser?.role) {
+      if (fullUser.role.name.toLowerCase() === "admin") {
+        hasAdminAccess = true;
+      } else if (fullUser.role.permissions) {
+        hasAdminAccess = fullUser.role.permissions.some(
+          (p) => p.canView || p.canCreate || p.canUpdate || p.canDelete
+        );
+      }
+    }
   }
 
   const settings = await prisma.storeSettings.findUnique({
@@ -27,8 +40,8 @@ export default async function Navbar() {
   });
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-sm">
-      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
+      <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
 
         {/* Logo and Mobile Nav */}
         {/* Logo and Mobile Nav */}
@@ -36,12 +49,12 @@ export default async function Navbar() {
           <MobileNav bannerUrl={settings?.bannerUrl} faviconUrl={settings?.faviconUrl} />
 
           {/* Desktop Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-300">
-            <Link href="/store" className="hover:text-white transition-colors">Store</Link>
-            <Link href="/store?category=mobile-cooler" className="hover:text-white transition-colors">Mobile Coolers</Link>
-            <Link href="/store?category=chargers-and-adapters" className="hover:text-white transition-colors">Chargers & Adapters</Link>
-            <Link href="/store?category=smart-watch" className="hover:text-white transition-colors">Smart Watches</Link>
-            <Link href="/store?category=sounds-audio" className="hover:text-white transition-colors">Sounds & Audio</Link>
+          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-foreground/80">
+            <Link href="/store" className="hover:text-foreground transition-colors">Store</Link>
+            <Link href="/store?category=mobile-cooler" className="hover:text-foreground transition-colors">Mobile Coolers</Link>
+            <Link href="/store?category=chargers-and-adapters" className="hover:text-foreground transition-colors">Chargers & Adapters</Link>
+            <Link href="/store?category=smart-watch" className="hover:text-foreground transition-colors">Smart Watches</Link>
+            <Link href="/store?category=sounds-audio" className="hover:text-foreground transition-colors">Sounds & Audio</Link>
           </nav>
         </div>
 
@@ -52,18 +65,18 @@ export default async function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-
+          <ThemeToggle />
           <CartIcon />
 
           {!user ? (
             <div className="flex items-center gap-2 ml-2">
               <Link href="/sign-in">
-                <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white hover:bg-white/10 h-8">
+                <Button variant="ghost" size="sm" className="text-xs text-foreground/80 hover:text-foreground hover:bg-muted h-8">
                   Sign In
                 </Button>
               </Link>
               <Link href="/sign-up">
-                <Button size="sm" className="text-xs bg-blue-600 hover:bg-blue-500 text-white h-8 hidden sm:flex">
+                <Button size="sm" className="text-xs bg-primary hover:bg-primary/90 text-primary-foreground h-8 hidden sm:flex">
                   Sign Up
                 </Button>
               </Link>
@@ -71,40 +84,42 @@ export default async function Navbar() {
           ) : (
             <div className="ml-2">
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:ring-2 hover:ring-slate-600 outline-none transition-all">
+                <DropdownMenuTrigger className="flex items-center justify-center w-8 h-8 rounded-full bg-muted border border-border hover:ring-2 hover:ring-primary/50 outline-none transition-all">
                   {user.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={user.image} alt={user.name || "User"} className="w-full h-full rounded-full object-cover" />
                   ) : (
-                    <UserIcon size={16} className="text-slate-400" />
+                    <UserIcon size={16} className="text-muted-foreground" />
                   )}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-[#0f1219] border-slate-800 text-slate-200">
+                <DropdownMenuContent align="end" className="w-56 bg-card border-border text-card-foreground">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none text-white">{user.name}</p>
-                      <p className="text-xs leading-none text-slate-400">{user.email}</p>
+                      <p className="text-sm font-medium leading-none text-foreground">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-slate-800" />
+                  <DropdownMenuSeparator className="bg-border" />
 
-                  {fullUser?.role?.name === 'admin' && (
-                    <DropdownMenuItem asChild className="hover:bg-slate-800 cursor-pointer focus:bg-slate-800">
+                  {hasAdminAccess && (
+                    <DropdownMenuItem asChild className="hover:bg-muted cursor-pointer focus:bg-muted">
                       <Link href="/admin" className="flex items-center gap-2">
-                        <LayoutDashboard size={14} className="text-blue-400" />
-                        Admin Dashboard
+                        <LayoutDashboard size={14} className="text-primary" />
+                        {fullUser?.role?.name?.toLowerCase() === 'admin' 
+                          ? 'Admin Dashboard' 
+                          : `${(fullUser?.role?.name || '').charAt(0).toUpperCase() + (fullUser?.role?.name || '').slice(1)} Dashboard`}
                       </Link>
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuItem asChild className="hover:bg-slate-800 cursor-pointer focus:bg-slate-800">
+                  <DropdownMenuItem asChild className="hover:bg-muted cursor-pointer focus:bg-muted">
                     <Link href="/dashboard" className="flex items-center gap-2">
                       <UserIcon size={14} />
                       My Profile
                     </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator className="bg-slate-800" />
+                  <DropdownMenuSeparator className="bg-border" />
                   <div className="p-1">
                     <LogoutButton />
                   </div>

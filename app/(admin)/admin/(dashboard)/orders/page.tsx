@@ -1,207 +1,402 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { format } from "date-fns";
-import { ShoppingCart, Loader2, FileText, ChevronRight, Search, Filter } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
+import { useCallback, useEffect, useRef, useState, Suspense } from "react"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import Link from "next/link"
+import { toast } from "sonner"
+import URLPagination from "@/components/URLPagination"
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 
-type OrderSummary = {
-  id: string;
-  createdAt: string;
-  status: string;
-  paymentStatus: string;
-  total: number;
-  user: { name: string; email: string };
-  _count: { items: number };
-  items: { imageSnapshot: string | null; productName: string }[];
-};
+type Order = {
+  id: string
+  orderCode: string
+  customerName: string
+  customerPhone: string
+  district: string
+  city: string
+  status: string
+  total: number
+  createdAt: string
+}
 
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<OrderSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+type PageData = { orders: Order[]; total: number; page: number; pages: number }
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams();
-      if (search) query.set("search", search);
-      if (statusFilter) query.set("status", statusFilter);
-      
-      const res = await fetch(`/api/orders?${query.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch orders");
-      const data = await res.json();
-      setOrders(data.orders || []);
-    } catch (error) {
-      toast.error("Could not load orders");
-    } finally {
-      setLoading(false);
-    }
-  };
+const STATUSES = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDING:    "bg-warning/10 text-warning border-warning/30",
+  CONFIRMED:  "bg-primary/10 text-primary border-primary/30",
+  PROCESSING: "bg-primary/10 text-primary border-primary/30",
+  SHIPPED:    "bg-accent/10 text-accent border-accent/30",
+  DELIVERED:  "bg-success/10 text-success border-success/30",
+  CANCELLED:  "bg-destructive/10 text-destructive border-destructive/30",
+}
+
+const inputCls = "px-3 py-2 border border-border rounded-lg bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+
+// ── Inline status dropdown ───────────────────────────────────────
+function StatusCell({ order, onUpdated }: { order: Order; onUpdated: (id: string, s: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetchOrders();
-  }, [search, statusFilter]);
+    if (!open) return
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [open])
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING": return "text-amber-400 bg-amber-400/10 border-amber-400/20";
-      case "CONFIRMED": return "text-blue-400 bg-blue-400/10 border-blue-400/20";
-      case "PROCESSING": return "text-indigo-400 bg-indigo-400/10 border-indigo-400/20";
-      case "SHIPPED": return "text-purple-400 bg-purple-400/10 border-purple-400/20";
-      case "DELIVERED": return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
-      case "CANCELLED": return "text-red-400 bg-red-400/10 border-red-400/20";
-      case "REFUNDED": return "text-slate-400 bg-slate-400/10 border-slate-400/20";
-      default: return "text-slate-400 bg-slate-400/10 border-slate-400/20";
-    }
-  };
+  async function pick(status: string) {
+    if (status === order.status) { setOpen(false); return }
+    setSaving(true)
+    const res = await fetch(`/api/orders/${order.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    })
+    setSaving(false); setOpen(false)
+    if (res.ok) { onUpdated(order.id, status); toast.success("Status updated") }
+    else toast.error("Failed to update status")
+  }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto mt-2">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <ShoppingCart className="text-blue-500" />
-            Orders
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage customer orders and fulfillment
-          </p>
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={saving}
+        className={`text-xs font-medium px-2.5 py-1 rounded-full border cursor-pointer hover:opacity-80 transition-opacity disabled:opacity-50 ${STATUS_COLORS[order.status] ?? "bg-muted text-muted-foreground border-border"}`}
+      >
+        {saving ? "…" : order.status}
+      </button>
+      {open && (
+        <div className="absolute z-20 top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-xl py-1 min-w-36">
+          {STATUSES.map((s) => (
+            <button key={s} onClick={() => pick(s)}
+              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors flex items-center gap-2 ${s === order.status ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${s === order.status ? "bg-primary" : "bg-muted-foreground/30"}`} />
+              {s}
+            </button>
+          ))}
         </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-          <Input
-            placeholder="Search Order ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#0d1017] border-slate-800 text-slate-200"
-          />
-        </div>
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="pl-9 pr-8 py-2 bg-[#0d1017] border border-slate-800 text-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none h-10"
-          >
-            <option value="">All Statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="PROCESSING">Processing</option>
-            <option value="SHIPPED">Shipped</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="border border-slate-800/60 rounded-xl bg-[#0d1017] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[800px]">
-            <thead className="border-b border-slate-800 text-slate-500 text-[11px] uppercase tracking-wider">
-              <tr>
-                <th className="px-5 py-3.5">Order / Product</th>
-                <th className="px-5 py-3.5">Customer</th>
-                <th className="px-5 py-3.5">Date</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5">Payment</th>
-                <th className="px-5 py-3.5 text-right">Total</th>
-                <th className="px-5 py-3.5 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50 text-slate-300">
-              {loading && orders.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center">
-                    <Loader2 className="animate-spin text-slate-500 mx-auto" size={24} />
-                  </td>
-                </tr>
-              ) : orders.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-500">
-                    <FileText size={32} className="opacity-40 mx-auto mb-3" />
-                    <p className="text-sm">No orders found</p>
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#0a0a0a] rounded-md border border-slate-800 flex items-center justify-center relative overflow-hidden flex-shrink-0">
-                          {order.items?.[0]?.imageSnapshot ? (
-                            <Image
-                              src={`${order.items[0].imageSnapshot}?tr=w-100`}
-                              alt="Product"
-                              fill
-                              unoptimized
-                              className="object-contain p-1"
-                            />
-                          ) : (
-                            <ShoppingCart className="w-4 h-4 text-slate-600" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-slate-200 font-medium truncate max-w-[150px]" title={order.items?.[0]?.productName || "Unknown"}>
-                            {order.items?.[0]?.productName || "Product"}
-                            {order._count.items > 1 && <span className="text-slate-500 text-xs ml-1">(+{order._count.items - 1})</span>}
-                          </div>
-                          <div className="font-mono text-[10px] text-slate-500 mt-0.5">
-                            #{order.id.slice(-8).toUpperCase()}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="font-medium text-slate-200">{order.user.name}</div>
-                      <div className="text-slate-500 mt-0.5">{order.user.email}</div>
-                    </td>
-                    <td className="px-5 py-4 text-slate-400">
-                      {format(new Date(order.createdAt), "MMM d, yyyy HH:mm")}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${
-                        order.paymentStatus === 'PAID' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' :
-                        order.paymentStatus === 'FAILED' ? 'text-red-400 bg-red-400/10 border-red-400/20' :
-                        'text-amber-400 bg-amber-400/10 border-amber-400/20'
-                      }`}>
-                        {order.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-right font-medium text-slate-200">
-                      ${Number(order.total).toFixed(2)}
-                      <div className="text-[10px] text-slate-500 font-normal mt-0.5">{order._count.items} item(s)</div>
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      <Link 
-                        href={`/admin/orders/${order.id}`}
-                        className="inline-flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                        title="View Order"
-                      >
-                        <ChevronRight size={18} />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      )}
     </div>
-  );
+  )
+}
+
+// ── Sortable column header ───────────────────────────────────────
+function SortTh({ label, field, sort, dir, onSort }: {
+  label: string; field: string; sort: string; dir: string; onSort: (f: string) => void
+}) {
+  const active = sort === field
+  return (
+    <th className="text-left px-4 py-3 text-muted-foreground font-medium whitespace-nowrap">
+      <button onClick={() => onSort(field)} className="flex items-center gap-1 hover:text-foreground transition-colors">
+        {label}
+        {active
+          ? dir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+          : <ArrowUpDown className="w-3 h-3 opacity-40" />}
+      </button>
+    </th>
+  )
+}
+
+// ── Main page ────────────────────────────────────────────────────
+function OrdersPageContent() {
+  const router   = useRouter()
+  const pathname = usePathname()
+  const sp       = useSearchParams()
+
+  const page     = parseInt(sp.get("page")     ?? "1")
+  const search   = sp.get("search")   ?? ""
+  const status   = sp.get("status")   ?? ""
+  const district = sp.get("district") ?? ""
+  const city     = sp.get("city")     ?? ""
+  const from     = sp.get("from")     ?? ""
+  const to       = sp.get("to")       ?? ""
+  const sort     = sp.get("sort")     ?? "createdAt"
+  const dir      = sp.get("dir")      ?? "desc"
+
+  const [data, setData]         = useState<PageData | null>(null)
+  const [loading, setLoading]   = useState(true)
+  const [searchInput, setSearchInput] = useState(search)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkStatus, setBulkStatus] = useState("")
+  const [bulking, setBulking]   = useState(false)
+  const debounceRef             = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [districts, setDistricts] = useState<string[]>([])
+  const [citiesByDistrict, setCitiesByDistrict] = useState<Record<string, string[]>>({})
+
+  function push(params: Record<string, string>) {
+    const next = new URLSearchParams(sp.toString())
+    Object.entries(params).forEach(([k, v]) => v ? next.set(k, v) : next.delete(k))
+    next.set("page", "1")
+    router.push(`${pathname}?${next.toString()}`)
+  }
+
+  function setPage(p: number) {
+    const next = new URLSearchParams(sp.toString())
+    next.set("page", String(p))
+    router.push(`${pathname}?${next.toString()}`)
+  }
+
+  function onSort(field: string) {
+    push({ sort: field, dir: sort === field && dir === "desc" ? "asc" : "desc" })
+  }
+
+  function handleSearchChange(v: string) {
+    setSearchInput(v)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => push({ search: v }), 400)
+  }
+
+  // Load unique districts/cities once
+  useEffect(() => {
+    fetch("/api/shipping-zones")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.data) return;
+        const dists = Array.from(new Set(d.data.map((z: any) => z.stateName))) as string[];
+        const cityMap: Record<string, string[]> = {};
+        d.data.forEach((z: any) => {
+          if (!cityMap[z.stateName]) cityMap[z.stateName] = [];
+          if (!cityMap[z.stateName].includes(z.cityName)) cityMap[z.stateName].push(z.cityName);
+        });
+        setDistricts(dists);
+        setCitiesByDistrict(cityMap);
+      })
+      .catch(() => {})
+  }, [])
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    setSelected(new Set())
+    const params = new URLSearchParams({ page: String(page), sort, dir, limit: "15" })
+    if (search)   params.set("search",   search)
+    if (status)   params.set("status",   status)
+    if (district) params.set("district", district)
+    if (city)     params.set("city",     city)
+    if (from)     params.set("from", from)
+    if (to)       params.set("to", to)
+    const res = await fetch(`/api/orders?${params}`)
+    if (res.ok) setData(await res.json())
+    setLoading(false)
+  }, [page, search, status, district, city, from, to, sort, dir])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const allIds     = data?.orders.map((o) => o.id) ?? []
+  const allChecked = allIds.length > 0 && allIds.every((id) => selected.has(id))
+  const anyChecked = selected.size > 0
+
+  function toggleAll() { setSelected(allChecked ? new Set() : new Set(allIds)) }
+  function toggleRow(id: string) {
+    setSelected((prev) => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s })
+  }
+
+  function onStatusUpdated(id: string, newStatus: string) {
+    setData((prev) => prev
+      ? { ...prev, orders: prev.orders.map((o) => o.id === id ? { ...o, status: newStatus } : o) }
+      : prev)
+  }
+
+  async function handleBulkUpdate() {
+    if (!bulkStatus || !anyChecked) return
+    setBulking(true)
+    const res = await fetch("/api/orders/bulk-status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [...selected], status: bulkStatus }),
+    })
+    setBulking(false)
+    if (res.ok) {
+      toast.success(`Updated ${selected.size} order${selected.size !== 1 ? "s" : ""}`)
+      const s = bulkStatus
+      setData((prev) => prev
+        ? { ...prev, orders: prev.orders.map((o) => selected.has(o.id) ? { ...o, status: s } : o) }
+        : prev)
+      setSelected(new Set()); setBulkStatus("")
+    } else {
+      toast.error("Bulk update failed")
+    }
+  }
+
+  const hasFilters = search || status || district || city || from || to
+  const citiesForDistrict = district ? (citiesByDistrict[district] ?? []) : []
+
+  return (
+    <div className="space-y-4 p-6">
+
+      {/* ── Filters ── */}
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-56">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <input
+            className={`${inputCls} w-full pl-9 pr-8`}
+            placeholder="Order ID, name, phone, district…"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+          {searchInput && (
+            <button onClick={() => { setSearchInput(""); push({ search: "" }) }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        {/* District */}
+        {districts.length > 0 && (
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">District</label>
+            <select
+              className={inputCls}
+              value={district}
+              onChange={(e) => push({ district: e.target.value, city: "" })}
+            >
+              <option value="">All districts</option>
+              {districts.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* City — only when the selected district has city-level orders */}
+        {citiesForDistrict.length > 0 && (
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">City</label>
+            <select
+              className={inputCls}
+              value={city}
+              onChange={(e) => push({ city: e.target.value })}
+            >
+              <option value="">All cities</option>
+              {citiesForDistrict.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        )}
+
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">From</label>
+          <input type="date" className={inputCls} value={from} onChange={(e) => push({ from: e.target.value })} />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">To</label>
+          <input type="date" className={inputCls} value={to} onChange={(e) => push({ to: e.target.value })} />
+        </div>
+        {hasFilters && (
+          <button onClick={() => { setSearchInput(""); router.push(pathname) }}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-2 transition-colors">
+            <X className="w-3.5 h-3.5" /> Clear
+          </button>
+        )}
+      </div>
+
+      {/* ── Status tabs ── */}
+      <div className="flex flex-wrap gap-1.5">
+        {["", ...STATUSES].map((s) => (
+          <button key={s} onClick={() => push({ status: s })}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              status === s
+                ? "bg-primary text-primary-foreground"
+                : "bg-card border border-border text-muted-foreground hover:text-foreground"
+            }`}>
+            {s || "All"}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Bulk action bar ── */}
+      {anyChecked && (
+        <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-lg px-4 py-2.5">
+          <span className="text-sm font-medium text-primary">{selected.size} selected</span>
+          <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)}
+            className={`${inputCls} ml-auto`}>
+            <option value="">Set status…</option>
+            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <button onClick={handleBulkUpdate} disabled={!bulkStatus || bulking}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors shrink-0">
+            {bulking ? "Updating…" : "Apply"}
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-muted-foreground hover:text-foreground">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Table ── */}
+      <div className="bg-card border border-border rounded-xl overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/40">
+              <th className="px-4 py-3 w-10">
+                <input type="checkbox" checked={allChecked} onChange={toggleAll}
+                  className="rounded border-border accent-primary w-4 h-4 cursor-pointer" />
+              </th>
+              <SortTh label="Order ID"  field="orderCode"    sort={sort} dir={dir} onSort={onSort} />
+              <SortTh label="Customer"  field="customerName" sort={sort} dir={dir} onSort={onSort} />
+              <th className="text-left px-4 py-3 text-muted-foreground font-medium">Phone</th>
+              <th className="text-left px-4 py-3 text-muted-foreground font-medium">District / City</th>
+              <SortTh label="Total"     field="total"        sort={sort} dir={dir} onSort={onSort} />
+              <SortTh label="Status"    field="status"       sort={sort} dir={dir} onSort={onSort} />
+              <SortTh label="Date"      field="createdAt"    sort={sort} dir={dir} onSort={onSort} />
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {loading && (
+              <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
+            )}
+            {!loading && data?.orders.length === 0 && (
+              <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No orders found.</td></tr>
+            )}
+            {!loading && data?.orders.map((order) => (
+              <tr key={order.id}
+                className={`hover:bg-muted/20 transition-colors ${selected.has(order.id) ? "bg-primary/5" : ""}`}>
+                <td className="px-4 py-3">
+                  <input type="checkbox" checked={selected.has(order.id)} onChange={() => toggleRow(order.id)}
+                    className="rounded border-border accent-primary w-4 h-4 cursor-pointer" />
+                </td>
+                <td className="px-4 py-3 font-mono font-medium text-foreground whitespace-nowrap">{order.orderCode}</td>
+                <td className="px-4 py-3 text-foreground max-w-36 truncate">{order.customerName}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{order.customerPhone}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                  {order.district
+                    ? <>{order.district}{order.city && <span className="opacity-60"> / {order.city}</span>}</>
+                    : <span className="opacity-30">—</span>}
+                </td>
+                <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">৳{Number(order.total).toFixed(0)}</td>
+                <td className="px-4 py-3"><StatusCell order={order} onUpdated={onStatusUpdated} /></td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3">
+                  <Link href={`/admin/orders/${order.id}`} className="text-primary hover:underline text-xs font-medium">View</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── Pagination ── */}
+      {data && (data.pages > 1 || data.total > 0) && (
+        <URLPagination currentPage={page} totalPages={data.pages} />
+      )}
+    </div>
+  )
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4 p-6">
+        <div className="flex items-center justify-center py-10 text-muted-foreground">
+          Loading orders...
+        </div>
+      </div>
+    }>
+      <OrdersPageContent />
+    </Suspense>
+  )
 }

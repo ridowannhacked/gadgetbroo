@@ -24,8 +24,11 @@ export default async function CheckoutPage() {
       ],
     }),
     prisma.address.findMany({
-      where: { userId: session.user.id },
-      orderBy: { isDefault: "desc" },
+      where: { 
+        userId: session.user.id,
+        isDeleted: false 
+      },
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }]
     })
   ]);
 

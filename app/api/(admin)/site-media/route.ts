@@ -3,6 +3,8 @@ import prisma from "../../../../lib/prisma";
 import { requireAdmin } from "../../../../lib/rbac";
 import { revalidatePath } from "next/cache";
 
+import { createSiteMediaSchema } from "../../../../zodSchemas/siteMediaSchema";
+
 export async function GET(request: NextRequest) {
   try {
     const session = await requireAdmin();
@@ -25,11 +27,13 @@ export async function POST(request: NextRequest) {
     if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await request.json();
-    const { title, url, fileId, placement, linkUrl, isActive, sortOrder } = body;
-
-    if (!title || !url || !fileId || !placement) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = createSiteMediaSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
+
+    const { title, url, fileId, placement, linkUrl, isActive, sortOrder } = parsed.data;
 
     const newMedia = await prisma.siteMedia.create({
       data: {

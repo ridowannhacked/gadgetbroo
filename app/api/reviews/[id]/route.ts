@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { checkPermission } from "@/lib/rbac";
 
+import { updateReviewVisibilitySchema } from "@/zodSchemas/reviewSchema";
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -12,13 +14,13 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
+    const parsed = updateReviewVisibilitySchema.safeParse(body);
     
-    // Only allow updating isVisible
-    const { isVisible } = body;
-    
-    if (typeof isVisible !== "boolean") {
+    if (!parsed.success) {
       return NextResponse.json({ error: "Invalid field" }, { status: 400 });
     }
+
+    const { isVisible } = parsed.data;
 
     const review = await prisma.review.update({
       where: { id },

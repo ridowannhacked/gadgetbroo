@@ -64,6 +64,9 @@ export type ProductCountAggregateOutputType = {
   isFeatured: number
   isDeleted: number
   deletedAt: number
+  tags: number
+  youtubeUrls: number
+  options: number
   categoryId: number
   createdAt: number
   updatedAt: number
@@ -111,6 +114,9 @@ export type ProductCountAggregateInputType = {
   isFeatured?: true
   isDeleted?: true
   deletedAt?: true
+  tags?: true
+  youtubeUrls?: true
+  options?: true
   categoryId?: true
   createdAt?: true
   updatedAt?: true
@@ -199,6 +205,9 @@ export type ProductGroupByOutputType = {
   isFeatured: boolean
   isDeleted: boolean
   deletedAt: Date | null
+  tags: string[]
+  youtubeUrls: string[]
+  options: runtime.JsonValue | null
   categoryId: string
   createdAt: Date
   updatedAt: Date
@@ -235,6 +244,9 @@ export type ProductWhereInput = {
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
   isDeleted?: Prisma.BoolFilter<"Product"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  tags?: Prisma.StringNullableListFilter<"Product">
+  youtubeUrls?: Prisma.StringNullableListFilter<"Product">
+  options?: Prisma.JsonNullableFilter<"Product">
   categoryId?: Prisma.StringFilter<"Product"> | string
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -255,6 +267,9 @@ export type ProductOrderByWithRelationInput = {
   isFeatured?: Prisma.SortOrder
   isDeleted?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  youtubeUrls?: Prisma.SortOrder
+  options?: Prisma.SortOrderInput | Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -278,6 +293,9 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
   isDeleted?: Prisma.BoolFilter<"Product"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  tags?: Prisma.StringNullableListFilter<"Product">
+  youtubeUrls?: Prisma.StringNullableListFilter<"Product">
+  options?: Prisma.JsonNullableFilter<"Product">
   categoryId?: Prisma.StringFilter<"Product"> | string
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -298,6 +316,9 @@ export type ProductOrderByWithAggregationInput = {
   isFeatured?: Prisma.SortOrder
   isDeleted?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  youtubeUrls?: Prisma.SortOrder
+  options?: Prisma.SortOrderInput | Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -319,6 +340,9 @@ export type ProductScalarWhereWithAggregatesInput = {
   isFeatured?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   isDeleted?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null
+  tags?: Prisma.StringNullableListFilter<"Product">
+  youtubeUrls?: Prisma.StringNullableListFilter<"Product">
+  options?: Prisma.JsonNullableWithAggregatesFilter<"Product">
   categoryId?: Prisma.StringWithAggregatesFilter<"Product"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
@@ -334,6 +358,9 @@ export type ProductCreateInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -353,6 +380,9 @@ export type ProductUncheckedCreateInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -372,6 +402,9 @@ export type ProductUpdateInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
@@ -391,6 +424,9 @@ export type ProductUncheckedUpdateInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -410,6 +446,9 @@ export type ProductCreateManyInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -425,6 +464,9 @@ export type ProductUpdateManyMutationInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -439,6 +481,9 @@ export type ProductUncheckedUpdateManyInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -454,6 +499,14 @@ export type ProductOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type ProductCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -464,6 +517,9 @@ export type ProductCountOrderByAggregateInput = {
   isFeatured?: Prisma.SortOrder
   isDeleted?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  youtubeUrls?: Prisma.SortOrder
+  options?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -546,6 +602,24 @@ export type ProductUncheckedUpdateManyWithoutCategoryNestedInput = {
   deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
 }
 
+export type ProductCreatetagsInput = {
+  set: string[]
+}
+
+export type ProductCreateyoutubeUrlsInput = {
+  set: string[]
+}
+
+export type ProductUpdatetagsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type ProductUpdateyoutubeUrlsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type ProductCreateNestedOneWithoutVariantsInput = {
   create?: Prisma.XOR<Prisma.ProductCreateWithoutVariantsInput, Prisma.ProductUncheckedCreateWithoutVariantsInput>
   connectOrCreate?: Prisma.ProductCreateOrConnectWithoutVariantsInput
@@ -612,6 +686,9 @@ export type ProductCreateWithoutCategoryInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   variants?: Prisma.ProductVariantCreateNestedManyWithoutProductInput
@@ -630,6 +707,9 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   variants?: Prisma.ProductVariantUncheckedCreateNestedManyWithoutProductInput
@@ -677,6 +757,9 @@ export type ProductScalarWhereInput = {
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
   isDeleted?: Prisma.BoolFilter<"Product"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  tags?: Prisma.StringNullableListFilter<"Product">
+  youtubeUrls?: Prisma.StringNullableListFilter<"Product">
+  options?: Prisma.JsonNullableFilter<"Product">
   categoryId?: Prisma.StringFilter<"Product"> | string
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -692,6 +775,9 @@ export type ProductCreateWithoutVariantsInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -710,6 +796,9 @@ export type ProductUncheckedCreateWithoutVariantsInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -744,6 +833,9 @@ export type ProductUpdateWithoutVariantsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
@@ -762,6 +854,9 @@ export type ProductUncheckedUpdateWithoutVariantsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -780,6 +875,9 @@ export type ProductCreateWithoutImagesInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -798,6 +896,9 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -832,6 +933,9 @@ export type ProductUpdateWithoutImagesInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
@@ -850,6 +954,9 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -868,6 +975,9 @@ export type ProductCreateWithoutReviewsInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -886,6 +996,9 @@ export type ProductUncheckedCreateWithoutReviewsInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -920,6 +1033,9 @@ export type ProductUpdateWithoutReviewsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
@@ -938,6 +1054,9 @@ export type ProductUncheckedUpdateWithoutReviewsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -956,6 +1075,9 @@ export type ProductCreateWithoutCommentsInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   category: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -974,6 +1096,9 @@ export type ProductUncheckedCreateWithoutCommentsInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1008,6 +1133,9 @@ export type ProductUpdateWithoutCommentsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneRequiredWithoutProductsNestedInput
@@ -1026,6 +1154,9 @@ export type ProductUncheckedUpdateWithoutCommentsInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1044,6 +1175,9 @@ export type ProductCreateManyCategoryInput = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: Date | string | null
+  tags?: Prisma.ProductCreatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductCreateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1058,6 +1192,9 @@ export type ProductUpdateWithoutCategoryInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variants?: Prisma.ProductVariantUpdateManyWithoutProductNestedInput
@@ -1076,6 +1213,9 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   variants?: Prisma.ProductVariantUncheckedUpdateManyWithoutProductNestedInput
@@ -1094,6 +1234,9 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tags?: Prisma.ProductUpdatetagsInput | string[]
+  youtubeUrls?: Prisma.ProductUpdateyoutubeUrlsInput | string[]
+  options?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1166,6 +1309,9 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: boolean
+  tags?: boolean
+  youtubeUrls?: boolean
+  options?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1187,6 +1333,9 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: boolean
+  tags?: boolean
+  youtubeUrls?: boolean
+  options?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1203,6 +1352,9 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: boolean
+  tags?: boolean
+  youtubeUrls?: boolean
+  options?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1219,12 +1371,15 @@ export type ProductSelectScalar = {
   isFeatured?: boolean
   isDeleted?: boolean
   deletedAt?: boolean
+  tags?: boolean
+  youtubeUrls?: boolean
+  options?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "description" | "brand" | "isActive" | "isFeatured" | "isDeleted" | "deletedAt" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "description" | "brand" | "isActive" | "isFeatured" | "isDeleted" | "deletedAt" | "tags" | "youtubeUrls" | "options" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryDefaultArgs<ExtArgs>
   variants?: boolean | Prisma.Product$variantsArgs<ExtArgs>
@@ -1259,6 +1414,9 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     isFeatured: boolean
     isDeleted: boolean
     deletedAt: Date | null
+    tags: string[]
+    youtubeUrls: string[]
+    options: runtime.JsonValue | null
     categoryId: string
     createdAt: Date
     updatedAt: Date
@@ -1699,6 +1857,9 @@ export interface ProductFieldRefs {
   readonly isFeatured: Prisma.FieldRef<"Product", 'Boolean'>
   readonly isDeleted: Prisma.FieldRef<"Product", 'Boolean'>
   readonly deletedAt: Prisma.FieldRef<"Product", 'DateTime'>
+  readonly tags: Prisma.FieldRef<"Product", 'String[]'>
+  readonly youtubeUrls: Prisma.FieldRef<"Product", 'String[]'>
+  readonly options: Prisma.FieldRef<"Product", 'Json'>
   readonly categoryId: Prisma.FieldRef<"Product", 'String'>
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Product", 'DateTime'>

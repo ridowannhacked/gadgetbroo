@@ -83,66 +83,66 @@ export default function AdminCommentsClient({ initialComments }: { initialCommen
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0f12] text-slate-200 p-4 sm:p-6 lg:p-10">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-10">
       <div className="max-w-7xl mx-auto space-y-6">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               Customer Comments & Q&A
             </h1>
-            <p className="text-sm text-slate-400 mt-1">Manage private customer inquiries and public comments.</p>
+            <p className="text-sm text-muted-foreground mt-1">Manage private customer inquiries and public comments.</p>
           </div>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
             placeholder="Search by customer, product, or comment content..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-[#12151a]/80 border-slate-800/80 text-slate-200 placeholder:text-slate-500 w-full sm:max-w-md"
+            className="pl-10 bg-card/80 border-border text-foreground placeholder:text-muted-foreground w-full sm:max-w-md"
           />
         </div>
 
         <div className="space-y-4">
           {filteredComments.length === 0 ? (
-            <div className="text-center py-12 bg-[#12151a]/80 rounded-xl border border-slate-800/80">
-              <p className="text-slate-500">No comments found.</p>
+            <div className="text-center py-12 bg-card/80 rounded-xl border border-border">
+              <p className="text-muted-foreground">No comments found.</p>
             </div>
           ) : filteredComments.map((comment) => (
-            <div key={comment.id} className="bg-[#12151a]/80 border border-slate-800/80 rounded-xl p-5 shadow-xl backdrop-blur-sm relative flex flex-col sm:flex-row gap-6">
+            <div key={comment.id} className="bg-card/80 border border-border rounded-xl p-5 shadow-xl backdrop-blur-sm relative flex flex-col sm:flex-row gap-6">
               
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold text-white">{comment.user.name}</span>
-                  <span className="text-xs text-slate-500">{comment.user.email}</span>
+                  <span className="font-semibold text-foreground">{comment.user.name}</span>
+                  <span className="text-xs text-muted-foreground">{comment.user.email}</span>
                   <span className="text-xs text-slate-600">•</span>
-                  <span className="text-xs text-slate-500">{format(new Date(comment.createdAt), "MMM d, yyyy h:mm a")}</span>
+                  <span className="text-xs text-muted-foreground">{format(new Date(comment.createdAt), "MMM d, yyyy h:mm a")}</span>
                 </div>
                 
                 <Link href={`/product/${comment.product.slug}`} className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors">
                   Product: {comment.product.name} <ExternalLink size={12} />
                 </Link>
 
-                <p className="text-sm text-slate-300 bg-[#0a0a0a] p-4 rounded-lg border border-slate-800/50 whitespace-pre-wrap">
+                <p className="text-sm text-muted-foreground bg-background p-4 rounded-lg border border-border whitespace-pre-wrap">
                   {comment.body}
                 </p>
 
                 {replyingTo === comment.id ? (
-                  <div className="mt-4 bg-slate-900/50 p-4 rounded-lg border border-slate-800">
+                  <div className="mt-4 bg-card/50 p-4 rounded-lg border border-border">
                     <label className="block text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Your Reply (Admin)</label>
                     <textarea 
                       value={replyContent}
                       onChange={(e) => setReplyContent(e.target.value)}
                       placeholder="Write a reply (leave blank to clear)..."
-                      className="w-full h-24 bg-[#0a0a0a] border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none mb-3"
+                      className="w-full h-24 bg-background border border-border rounded-lg p-3 text-sm text-foreground focus:outline-none focus:border-blue-500 resize-none mb-3"
                     />
                     <div className="flex gap-2">
-                      <button onClick={() => submitReply(comment.id)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium">
+                      <button onClick={() => submitReply(comment.id)} className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium">
                         Save Reply
                       </button>
-                      <button onClick={() => setReplyingTo(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium">
+                      <button onClick={() => setReplyingTo(null)} className="px-4 py-2 bg-muted hover:bg-secondary text-foreground rounded-lg text-sm font-medium">
                         Cancel
                       </button>
                     </div>
@@ -154,7 +154,7 @@ export default function AdminCommentsClient({ initialComments }: { initialCommen
                         <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Admin Reply</span>
                         <button 
                           onClick={() => { setReplyingTo(comment.id); setReplyContent(comment.adminReply || ""); }}
-                          className="opacity-0 group-hover/reply:opacity-100 text-slate-400 hover:text-blue-400 p-1 transition-opacity"
+                          className="opacity-0 group-hover/reply:opacity-100 text-muted-foreground hover:text-blue-400 p-1 transition-opacity"
                         >
                           <Edit2 size={12} />
                         </button>
@@ -168,9 +168,9 @@ export default function AdminCommentsClient({ initialComments }: { initialCommen
               </div>
 
               {/* Actions Sidebar */}
-              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-4 min-w-[140px] border-t sm:border-t-0 sm:border-l border-slate-800/80 pt-4 sm:pt-0 sm:pl-4">
+              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-4 min-w-[140px] border-t sm:border-t-0 sm:border-l border-border pt-4 sm:pt-0 sm:pl-4">
                 <div className="flex flex-col items-center sm:items-end gap-1.5 w-full">
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Visibility</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Visibility</span>
                   <button
                     onClick={() => toggleVisibility(comment.id, comment.isPublic)}
                     className={`w-full flex items-center justify-center sm:justify-between px-3 py-1.5 rounded-md text-xs font-medium transition-colors border ${
@@ -191,14 +191,14 @@ export default function AdminCommentsClient({ initialComments }: { initialCommen
                   {!replyingTo && (
                     <button
                       onClick={() => { setReplyingTo(comment.id); setReplyContent(comment.adminReply || ""); }}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-medium transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-muted hover:bg-secondary text-foreground rounded-lg text-xs font-medium transition-colors"
                     >
                       <Reply size={14} /> Reply
                     </button>
                   )}
                   <button
                     onClick={() => deleteComment(comment.id)}
-                    className="flex items-center justify-center gap-2 px-3 py-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg text-xs font-medium transition-colors"
+                    className="flex items-center justify-center gap-2 px-3 py-2 text-muted-foreground hover:text-destructive hover:bg-red-500/10 rounded-lg text-xs font-medium transition-colors"
                   >
                     <Trash2 size={14} /> Delete
                   </button>

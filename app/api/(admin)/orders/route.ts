@@ -10,22 +10,57 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const district = searchParams.get("district") || "";
+    const city = searchParams.get("city") || "";
+    const fromDate = searchParams.get("from") || "";
+    const toDate = searchParams.get("to") || "";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const where = {
-      AND: [
-        search ? { id: { contains: search, mode: "insensitive" as const } } : {},
-        status ? { status: status as import("@/src/generated/prisma/client").OrderStatus } : {},
-      ],
+    const where: any = {
+      AND: [],
     };
 
-    const [orders, total] = await Promise.all([
+    if (search) {
+      where.AND.push({
+        OR: [
+          { id: { contains: search, mode: "insensitive" } },
+          { customerName: { contains: search, mode: "insensitive" } },
+          { customerPhone: { contains: search, mode: "insensitive" } },
+        ]
+      });
+    }
+
+    if (status) {
+      where.AND.push({ status: status as import("@/src/generated/prisma/client").OrderStatus });
+    }
+
+    if (district) {
+      where.AND.push({ address: { state: district } });
+    }
+
+    if (city) {
+      where.AND.push({ address: { city: city } });
+    }
+
+    if (fromDate || toDate) {
+      const dateFilter: any = {};
+      if (fromDate) dateFilter.gte = new Date(fromDate);
+      if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        dateFilter.lte = to;
+      }
+      where.AND.push({ createdAt: dateFilter });
+    }
+
+    const [rawOrders, total] = await Promise.all([
       prisma.order.findMany({
-        where,
+        where: where.AND.length > 0 ? where : {},
         include: {
           user: { select: { name: true, email: true } },
+          address: { select: { state: true, city: true } },
           _count: { select: { items: true } },
           items: {
             take: 1,
@@ -36,10 +71,19 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      prisma.order.count({ where }),
+      prisma.order.count({ where: where.AND.length > 0 ? where : {} }),
     ]);
 
-    return NextResponse.json({ orders, total, page, totalPages: Math.ceil(total / limit) });
+    const orders = rawOrders.map((o) => ({
+      ...o,
+      orderCode: `#${o.id.slice(-8).toUpperCase()}`,
+      district: o.address?.state || "",
+      city: o.address?.city || "",
+      customerName: o.customerName || o.user?.name || "Unknown",
+      customerPhone: o.customerPhone || o.user?.email || "Unknown",
+    }));
+
+    return NextResponse.json({ orders, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("Orders GET error:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });

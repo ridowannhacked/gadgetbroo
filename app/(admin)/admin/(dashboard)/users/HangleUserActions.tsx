@@ -54,7 +54,7 @@ export function DeleteUserButton({ user, onSuccess }: Props) {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <button
-          className="text-red-500/80 hover:text-red-400 transition-colors p-1"
+          className="text-destructive/80 hover:text-destructive transition-colors p-1"
           title="Delete User"
         >
           <Trash2 size={16} />
@@ -65,7 +65,7 @@ export function DeleteUserButton({ user, onSuccess }: Props) {
           <AlertDialogTitle>Delete &quot;{user.name}&quot;?</AlertDialogTitle>
           <AlertDialogDescription>
             This will permanently delete the account for{" "}
-            <span className="text-white font-medium">{user.email}</span> along
+            <span className="text-foreground font-medium">{user.email}</span> along
             with all their sessions. This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -74,7 +74,7 @@ export function DeleteUserButton({ user, onSuccess }: Props) {
           <AlertDialogAction
             onClick={handleDelete}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-foreground"
           >
             {loading ? (
               <span className="flex items-center gap-2">

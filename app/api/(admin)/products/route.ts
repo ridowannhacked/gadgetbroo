@@ -33,6 +33,15 @@ export async function GET(request: NextRequest) {
       ...(categoryId && { categoryId }),
       ...(featured === "true" && { isFeatured: true }),
       ...(featured === "false" && { isFeatured: false }),
+      ...(stock === "out" && {
+        variants: { none: { isActive: true, stock: { gt: 0 } } }
+      }),
+      ...(stock === "low" && {
+        variants: { some: { isActive: true, stock: { gt: 0, lte: 5 } } }
+      }),
+      ...(stock === "in" && {
+        variants: { some: { isActive: true, stock: { gt: 5 } } }
+      }),
     };
 
     const [products, totalCount] = await prisma.$transaction([
@@ -43,7 +52,7 @@ export async function GET(request: NextRequest) {
         include: {
         category: { select: { name: true, slug: true } },
         variants: {
-          select: { price: true, stock: true, isActive: true },
+          select: { id: true, name: true, sku: true, price: true, stock: true, isActive: true },
         },
         images: {
           where: { isPrimary: true },
@@ -57,7 +66,7 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where: whereClause }),
     ]);
 
-    // Compute stock status from variants
+    // Compute stock status from variants for the UI
     const productsWithStock = products.map((p) => {
       const activeVariants = p.variants.filter((v) => v.isActive);
       const totalStock = activeVariants.reduce((sum, v) => sum + v.stock, 0);
@@ -69,16 +78,8 @@ export async function GET(request: NextRequest) {
       return { ...p, totalStock, stockStatus, lowestPrice };
     });
 
-    // Filter by stock status after computing
-    const filtered = stock
-      ? productsWithStock.filter((p) => p.stockStatus === stock)
-      : productsWithStock;
-
-    // Note: If filtering heavily by computed stock status, offset pagination 
-    // strictly on the DB level might return fewer items than `limit`.
-    // A robust fix would move stock tracking into the Product table directly.
     return NextResponse.json({
-      products: filtered,
+      products: productsWithStock,
       totalCount,
       page,
       limit,
@@ -114,8 +115,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Slug already exists" }, { status: 400 });
     }
 
+    // Auto-generate SKUs and Names if missing
+    const processedVariants = variants.map((v, index) => {
+      let variantName = v.name;
+      if (!variantName) {
+        variantName = v.attributes && Object.values(v.attributes).length > 0 
+          ? Object.values(v.attributes).join(" - ") 
+          : "Default Variant";
+      }
+      
+      let sku = v.sku;
+      if (!sku) {
+        const baseSlug = productData.slug;
+        let attrHash = index.toString().padStart(2, '0');
+        if (v.attributes && Object.keys(v.attributes).length > 0) {
+          const crypto = require("crypto");
+          attrHash = crypto.createHash('md5').update(JSON.stringify(v.attributes)).digest('hex').substring(0, 6).toUpperCase();
+        }
+        sku = `${baseSlug.toUpperCase().substring(0, 10)}-${attrHash}`.replace(/[^A-Z0-9-]/g, "");
+      }
+
+      return { ...v, name: variantName, sku };
+    });
+
     // Check SKU uniqueness across all variants
-    const skus = variants.map((v) => v.sku);
+    const skus = processedVariants.map((v) => v.sku);
     const existingSkus = await prisma.productVariant.findMany({
       where: { sku: { in: skus } },
       select: { sku: true },
@@ -127,15 +151,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Convert options and tags if necessary
+    const createData: any = { ...productData };
+    if (createData.options === null) createData.options = Prisma.JsonNull;
+    if (createData.options && typeof createData.options === 'object') {
+      createData.options = createData.options;
+    }
+
     // Create product with variants in one transaction
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
-          ...productData,
+          ...createData,
           variants: {
-            create: variants.map((v) => ({
-              ...v,
-              price: v.price, // Prisma Decimal handles this
+            create: processedVariants.map((v) => ({
+              name: v.name,
+              sku: v.sku,
+              price: v.price,
+              stock: v.stock,
+              attributes: v.attributes ?? Prisma.JsonNull,
+              isActive: v.isActive,
             })),
           },
         },

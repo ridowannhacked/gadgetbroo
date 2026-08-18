@@ -56,7 +56,7 @@ export async function POST(
   });
 
   // "admin" role name is the super-admin fallback (has all permissions by convention)
-  const isAdminRole = caller?.role?.name === "admin";
+  const isAdminRole = caller?.role?.name?.toLowerCase() === "admin";
   const hasUpdateUsers = caller?.role?.permissions?.some(
     (p) => p.resource === "Users" && p.canUpdate === true
   );

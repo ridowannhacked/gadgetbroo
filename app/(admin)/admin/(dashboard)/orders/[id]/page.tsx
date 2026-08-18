@@ -30,7 +30,7 @@ type OrderDetails = {
   subtotal: number;
   discount: number;
   total: number;
-  user: { name: string; email: string };
+  user: { name: string; email: string } | null;
   address: {
     fullName: string;
     line1: string;
@@ -40,7 +40,11 @@ type OrderDetails = {
     postalCode: string;
     country: string;
     phone: string;
-  };
+  } | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  customerAddress: string | null;
+  orderSource: string;
   paymentMethod: string;
   paymentStatus: string;
   trackingNumber: string | null;
@@ -111,14 +115,14 @@ export default function OrderDetailsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
-          <Link href="/admin/orders" className="p-2 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white transition-colors">
+          <Link href="/admin/orders" className="p-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
               Order #{order.id.slice(-8).toUpperCase()}
             </h1>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
               <Calendar size={12} />
               Placed on {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
             </p>
@@ -131,7 +135,7 @@ export default function OrderDetailsPage() {
               value={order.status}
               disabled={updating}
               onChange={(e) => updateField('status', e.target.value)}
-              className="pl-3 pr-8 py-2 bg-[#0d1017] border border-slate-800 text-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none h-10 min-w-[140px] disabled:opacity-50"
+              className="pl-3 pr-8 py-2 bg-card border border-border text-foreground rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none h-10 min-w-[140px] disabled:opacity-50"
             >
               <option value="PENDING">PENDING</option>
               <option value="CONFIRMED">CONFIRMED</option>
@@ -141,7 +145,7 @@ export default function OrderDetailsPage() {
               <option value="CANCELLED">CANCELLED</option>
               <option value="REFUNDED">REFUNDED</option>
             </select>
-            {updating && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400 pointer-events-none" />}
+            {updating && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground pointer-events-none" />}
           </div>
         </div>
       </div>
@@ -149,14 +153,14 @@ export default function OrderDetailsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Order Items */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
               <Package size={16} className="text-blue-400" /> Items Ordered
             </h2>
-            <div className="divide-y divide-slate-800/50">
+            <div className="divide-y divide-border">
               {order.items.map((item: OrderItemDetails) => (
                 <div key={item.id} className="py-4 flex gap-4">
-                  <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden shrink-0 border border-slate-700">
+                  <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden shrink-0 border border-border">
                     {item.imageSnapshot ? (
                        // eslint-disable-next-line @next/next/no-img-element
                       <img 
@@ -169,19 +173,19 @@ export default function OrderDetailsPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-slate-200 truncate">{item.productName}</h3>
-                    <p className="text-[11px] text-slate-400 mt-1">{item.variantName}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">SKU: {item.skuAtOrder}</p>
+                    <h3 className="text-sm font-medium text-foreground truncate">{item.productName}</h3>
+                    <p className="text-[11px] text-muted-foreground mt-1">{item.variantName}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">SKU: {item.skuAtOrder}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-sm font-medium text-slate-200">${Number(item.priceAtOrder).toFixed(2)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</div>
+                    <div className="text-sm font-medium text-foreground">${Number(item.priceAtOrder).toFixed(2)}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="border-t border-slate-800/60 mt-4 pt-4 space-y-2">
-              <div className="flex justify-between text-xs text-slate-400">
+            <div className="border-t border-border mt-4 pt-4 space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Subtotal</span>
                 <span>${Number(order.subtotal).toFixed(2)}</span>
               </div>
@@ -191,7 +195,7 @@ export default function OrderDetailsPage() {
                   <span>-${Number(order.discount).toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-medium text-slate-200 pt-2 border-t border-slate-800/60">
+              <div className="flex justify-between text-sm font-medium text-foreground pt-2 border-t border-border">
                 <span>Total</span>
                 <span>${Number(order.total).toFixed(2)}</span>
               </div>
@@ -201,55 +205,67 @@ export default function OrderDetailsPage() {
 
         {/* Right Column: Customer & Shipping Info */}
         <div className="space-y-6">
-          <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-5 shadow-sm">
-             <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
               <User size={16} className="text-purple-400" /> Customer Info
             </h2>
             <div className="space-y-3 text-sm">
               <div>
-                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Name</div>
-                <div className="text-slate-300 font-medium">{order.user.name}</div>
+                <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-0.5">Name</div>
+                <div className="text-muted-foreground font-medium">{order.user?.name || order.customerName || "Guest (Walk-in)"}</div>
               </div>
               <div>
-                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Email</div>
-                <div className="text-slate-300">{order.user.email}</div>
+                <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-0.5">Email / Source</div>
+                <div className="text-muted-foreground">{order.user?.email || `POS Order`}</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-5 shadow-sm">
-             <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
               <MapPin size={16} className="text-emerald-400" /> Shipping Address
             </h2>
-            <div className="space-y-1 text-sm text-slate-300">
-              <div className="font-medium">{order.address.fullName}</div>
-              <div>{order.address.line1}</div>
-              {order.address.line2 && <div>{order.address.line2}</div>}
-              <div>{order.address.city}, {order.address.state} {order.address.postalCode}</div>
-              <div>{order.address.country}</div>
-              <div className="pt-2 text-slate-400 flex items-center gap-2">
-                Phone: {order.address.phone}
-              </div>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              {order.address ? (
+                <>
+                  <div className="font-medium">{order.address.fullName}</div>
+                  <div>{order.address.line1}</div>
+                  {order.address.line2 && <div>{order.address.line2}</div>}
+                  <div>{order.address.city}, {order.address.state} {order.address.postalCode}</div>
+                  <div>{order.address.country}</div>
+                  <div className="pt-2 text-muted-foreground flex items-center gap-2">
+                    Phone: {order.address.phone}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="font-medium">{order.customerName}</div>
+                  <div className="text-muted-foreground">{order.customerAddress || "Store Pickup"}</div>
+                  <div className="pt-2 text-muted-foreground flex items-center gap-2">
+                    Phone: {order.customerPhone}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
-          <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-5 shadow-sm">
-             <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
               <CreditCard size={16} className="text-amber-400" /> Payment Details
             </h2>
             <div className="space-y-3 text-sm">
               <div>
-                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Method</div>
-                <div className="text-slate-300 capitalize">{order.paymentMethod.replace(/_/g, ' ').toLowerCase()}</div>
+                <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-0.5">Method</div>
+                <div className="text-muted-foreground capitalize">{order.paymentMethod.replace(/_/g, ' ').toLowerCase()}</div>
               </div>
               <div>
-                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-1">Status</div>
+                <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Status</div>
                 <div className="relative max-w-[160px]">
                   <select
                     value={order.paymentStatus}
                     disabled={updating}
                     onChange={(e) => updateField('paymentStatus', e.target.value)}
-                    className="w-full pl-3 pr-8 py-1.5 bg-[#0a0a0a] border border-slate-800 text-slate-200 rounded-md text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                    className="w-full pl-3 pr-8 py-1.5 bg-background border border-border text-foreground rounded-md text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-50"
                   >
                     <option value="UNPAID">UNPAID</option>
                     <option value="PAID">PAID</option>
@@ -261,19 +277,19 @@ export default function OrderDetailsPage() {
             </div>
           </div>
 
-          <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-5 shadow-sm">
-             <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
               <Truck size={16} className="text-blue-400" /> Fulfillment
             </h2>
             <div className="space-y-4 text-sm">
               <div>
-                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-1">Tracking Number</div>
+                <div className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Tracking Number</div>
                 <div className="flex gap-2">
                   <Input 
                     value={trackingNumber}
                     onChange={(e) => setTrackingNumber(e.target.value)}
                     placeholder="e.g. STEADFAST-1234"
-                    className="bg-[#0a0a0a] border-slate-800 text-white h-9 text-xs"
+                    className="bg-background border-border text-foreground h-9 text-xs"
                   />
                   <Button 
                     size="sm" 
@@ -289,16 +305,16 @@ export default function OrderDetailsPage() {
             </div>
           </div>
 
-          <div className="bg-[#0d1017] border border-slate-800/60 rounded-xl p-5 shadow-sm">
-             <h2 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-              <FileText size={16} className="text-slate-400" /> Admin Notes
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+              <FileText size={16} className="text-muted-foreground" /> Admin Notes
             </h2>
             <div className="space-y-3">
               <textarea
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Internal notes about this order..."
-                className="w-full h-24 bg-[#0a0a0a] border border-slate-800 rounded-md p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                className="w-full h-24 bg-background border border-border rounded-md p-3 text-xs text-muted-foreground focus:outline-none focus:border-blue-500 transition-colors resize-none"
               />
               <Button 
                 size="sm" 

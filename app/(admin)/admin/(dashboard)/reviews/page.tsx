@@ -74,11 +74,11 @@ export default function ReviewsPage() {
     <div className="space-y-6 max-w-7xl mx-auto mt-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Star className="text-amber-500" />
             Reviews
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Moderate customer product reviews
           </p>
         </div>
@@ -87,21 +87,21 @@ export default function ReviewsPage() {
       {/* Filters */}
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <Input
             placeholder="Search reviews..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#0d1017] border-slate-800 text-slate-200"
+            className="pl-9 bg-card border-border text-foreground"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="border border-slate-800/60 rounded-xl bg-[#0d1017] overflow-hidden">
+      <div className="border border-border rounded-xl bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[800px]">
-            <thead className="border-b border-slate-800 text-slate-500 text-[11px] uppercase tracking-wider">
+            <thead className="border-b border-border text-muted-foreground text-[11px] uppercase tracking-wider">
               <tr>
                 <th className="px-5 py-3.5">Product</th>
                 <th className="px-5 py-3.5">Customer</th>
@@ -112,16 +112,16 @@ export default function ReviewsPage() {
                 <th className="px-5 py-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 text-slate-300">
+            <tbody className="divide-y divide-border text-muted-foreground">
               {loading && reviews.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center">
-                    <Loader2 className="animate-spin text-slate-500 mx-auto" size={24} />
+                    <Loader2 className="animate-spin text-muted-foreground mx-auto" size={24} />
                   </td>
                 </tr>
               ) : reviews.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-500">
+                  <td colSpan={7} className="py-16 text-center text-muted-foreground">
                     <FileText size={32} className="opacity-40 mx-auto mb-3" />
                     <p className="text-sm">No reviews found</p>
                   </td>
@@ -129,12 +129,12 @@ export default function ReviewsPage() {
               ) : (
                 reviews.map((review) => (
                   <tr key={review.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-5 py-4 font-medium text-slate-200 truncate max-w-[150px]" title={review.product.name}>
+                    <td className="px-5 py-4 font-medium text-foreground truncate max-w-[150px]" title={review.product.name}>
                       {review.product.name}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="font-medium text-slate-200">{review.user.name}</div>
-                      <div className="text-slate-500 mt-0.5 truncate max-w-[120px]">{review.user.email}</div>
+                      <div className="font-medium text-foreground">{review.user.name}</div>
+                      <div className="text-muted-foreground mt-0.5 truncate max-w-[120px]">{review.user.email}</div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex gap-0.5 text-amber-500">
@@ -144,17 +144,17 @@ export default function ReviewsPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="font-medium text-slate-300">{review.title}</div>
-                      <div className="text-slate-500 mt-1 line-clamp-2" title={review.body || ""}>
+                      <div className="font-medium text-muted-foreground">{review.title}</div>
+                      <div className="text-muted-foreground mt-1 line-clamp-2" title={review.body || ""}>
                         {review.body}
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-slate-400">
+                    <td className="px-5 py-4 text-muted-foreground">
                       {format(new Date(review.createdAt), "MMM d, yyyy")}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${
-                        review.isVisible ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' : 'text-slate-400 bg-slate-400/10 border-slate-400/20'
+                        review.isVisible ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' : 'text-muted-foreground bg-slate-400/10 border-slate-400/20'
                       }`}>
                         {review.isVisible ? "Published" : "Hidden"}
                       </span>
@@ -163,14 +163,14 @@ export default function ReviewsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => toggleVisibility(review.id, review.isVisible)}
-                          className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                           title={review.isVisible ? "Hide Review" : "Publish Review"}
                         >
                           {review.isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                         <button
                           onClick={() => deleteReview(review.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-red-500/10 rounded transition-colors"
                           title="Delete"
                         >
                           <Trash2 size={16} />

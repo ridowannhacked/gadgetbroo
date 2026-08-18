@@ -14,7 +14,7 @@ export async function checkPermission(resource: string, action: PermissionAction
   });
   
   // Super admin always has access
-  if (user?.role?.name === "admin") return session;
+  if (user?.role?.name?.toLowerCase() === "admin") return session;
   
   // Check granular permission
   const hasPerm = user?.role?.permissions.some(
@@ -37,6 +37,6 @@ export async function requireAdmin() {
     include: { role: true },
   });
 
-  if (user?.role?.name === "admin") return session;
+  if (user?.role?.name?.toLowerCase() === "admin") return session;
   return null;
 }

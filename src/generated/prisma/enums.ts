@@ -32,9 +32,20 @@ export const PaymentStatus = {
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 
+export const OrderSource = {
+  ONLINE: 'ONLINE',
+  POS: 'POS',
+  SOCIAL_MEDIA: 'SOCIAL_MEDIA'
+} as const
+
+export type OrderSource = (typeof OrderSource)[keyof typeof OrderSource]
+
+
 export const PaymentMethod = {
   STRIPE: 'STRIPE',
-  CASH_ON_DELIVERY: 'CASH_ON_DELIVERY'
+  CASH_ON_DELIVERY: 'CASH_ON_DELIVERY',
+  CASH: 'CASH',
+  MANUAL_BKASH: 'MANUAL_BKASH'
 } as const
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
