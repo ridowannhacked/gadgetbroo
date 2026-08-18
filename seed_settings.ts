@@ -1,1 +1,0 @@
-import prisma from "./lib/prisma"; async function main() { await prisma.storeSettings.upsert({ where: { id: "global" }, update: {}, create: { id: "global", contactEmail: "contact@gadgetbroo.com", contactPhone: "+880 1234567890", contactAddress: "Dhaka, Bangladesh" } }); console.log("Seeded"); } main();

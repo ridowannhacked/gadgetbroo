@@ -19,7 +19,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 // ── Resources that can be protected ──────────────────────────────────
-const RESOURCES = ["Products", "Categories", "Orders", "Media", "Users", "Roles"] as const;
+const RESOURCES = [
+  "Products", 
+  "Categories", 
+  "Orders", 
+  "POS",
+  "Shipping",
+  "Reviews",
+  "Banners",
+  "Pages",
+  "Settings",
+  "Media", 
+  "Users", 
+  "Roles"
+] as const;
 type Resource = (typeof RESOURCES)[number];
 
 const PERM_COLS = [
@@ -113,30 +126,30 @@ function PermissionsMatrix({
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-slate-800">
+      <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-slate-800 bg-[#12151a]">
-              <th className="px-4 py-2.5 text-left font-medium text-slate-400 w-40">
+            <tr className="border-b border-border bg-card">
+              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground w-40">
                 Resource
               </th>
               {PERM_COLS.map((col) => (
                 <th
                   key={col.key}
-                  className="px-4 py-2.5 text-center font-medium text-slate-400 w-20"
+                  className="px-4 py-2.5 text-center font-medium text-muted-foreground w-20"
                 >
                   {col.label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-border">
             {RESOURCES.map((resource) => (
               <tr
                 key={resource}
-                className="bg-[#0d1017] hover:bg-[#12151a] transition-colors"
+                className="bg-card hover:bg-card transition-colors"
               >
-                <td className="px-4 py-2.5 font-medium text-slate-300">
+                <td className="px-4 py-2.5 font-medium text-muted-foreground">
                   {resource}
                 </td>
                 {PERM_COLS.map((col) => {
@@ -149,8 +162,8 @@ function PermissionsMatrix({
                         aria-label={`Toggle ${col.label} for ${resource}`}
                         className={`w-5 h-5 rounded flex items-center justify-center mx-auto border transition-all duration-150 ${
                           checked
-                            ? "bg-blue-600 border-blue-500 text-white"
-                            : "border-slate-700 bg-slate-900 text-transparent hover:border-slate-500"
+                            ? "bg-blue-600 border-blue-500 text-foreground"
+                            : "border-border bg-card text-transparent hover:border-slate-500"
                         }`}
                       >
                         <Check size={11} />
@@ -169,7 +182,7 @@ function PermissionsMatrix({
           size="sm"
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-500 text-white gap-2"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
         >
           {saving ? (
             <Loader2 size={13} className="animate-spin" />
@@ -196,7 +209,7 @@ function EditRoleInline({
   const [name, setName] = useState(role.name);
   const [description, setDescription] = useState(role.description ?? "");
   const [saving, setSaving] = useState(false);
-  const isLocked = role.name === "admin" || role.name === "customer";
+  const isLocked = role.name.toLowerCase() === "admin" || role.name === "customer";
 
   const handleSave = async () => {
     setSaving(true);
@@ -225,13 +238,13 @@ function EditRoleInline({
           onChange={(e) => setName(e.target.value)}
           placeholder="Role name"
           disabled={isLocked}
-          className="bg-[#161b22] border-slate-700 text-slate-200 h-8 text-sm"
+          className="bg-background border-border text-foreground h-8 text-sm"
         />
         <Input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
-          className="bg-[#161b22] border-slate-700 text-slate-200 h-8 text-sm flex-1"
+          className="bg-background border-border text-foreground h-8 text-sm flex-1"
         />
       </div>
       {isLocked && (
@@ -244,7 +257,7 @@ function EditRoleInline({
           size="sm"
           variant="ghost"
           onClick={onCancel}
-          className="text-slate-400 h-7 text-xs"
+          className="text-muted-foreground h-7 text-xs"
         >
           <X size={12} className="mr-1" /> Cancel
         </Button>
@@ -252,7 +265,7 @@ function EditRoleInline({
           size="sm"
           onClick={handleSave}
           disabled={saving || isLocked}
-          className="bg-blue-600 hover:bg-blue-500 text-white h-7 text-xs gap-1"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground h-7 text-xs gap-1"
         >
           {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
           Save
@@ -295,7 +308,7 @@ export default function RolesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-slate-400" size={24} />
+        <Loader2 className="animate-spin text-muted-foreground" size={24} />
       </div>
     );
   }
@@ -305,10 +318,10 @@ export default function RolesPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mt-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
             Roles &amp; Permissions
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Manage user roles and configure per-resource access permissions
           </p>
         </div>
@@ -336,7 +349,7 @@ export default function RolesPage() {
           return (
             <div
               key={role.id}
-              className="border border-slate-800/80 rounded-xl bg-[#0d1017] overflow-hidden transition-all"
+              className="border border-border rounded-xl bg-card overflow-hidden transition-all"
             >
               {/* Card Header */}
               <div className="flex items-center justify-between gap-4 px-5 py-4">
@@ -347,14 +360,14 @@ export default function RolesPage() {
                   <div className="min-w-0">
                     <h2 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
                       {role.name}
-                      {(role.name === "admin" || role.name === "customer") && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 font-normal">
+                      {(role.name.toLowerCase() === "admin" || role.name === "customer") && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-normal">
                           system
                         </span>
                       )}
                     </h2>
                     {role.description && (
-                      <p className="text-[11px] text-slate-500 truncate">{role.description}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{role.description}</p>
                     )}
                     <div className="flex gap-3 text-[10px] text-slate-600 mt-0.5">
                       <span>{role.users.length} user{role.users.length !== 1 ? "s" : ""}</span>
@@ -371,7 +384,7 @@ export default function RolesPage() {
                       setEditingId(isEditing ? null : role.id);
                       if (!isExpanded) setExpandedId(role.id);
                     }}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     title="Edit role"
                   >
                     <Pencil size={14} />
@@ -380,7 +393,7 @@ export default function RolesPage() {
                   <button
                     type="button"
                     onClick={() => toggleExpand(role.id)}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     title={isExpanded ? "Collapse" : "Configure permissions"}
                   >
                     {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -390,7 +403,7 @@ export default function RolesPage() {
 
               {/* Expandable section */}
               {isExpanded && (
-                <div className="border-t border-slate-800/60 px-5 pb-5">
+                <div className="border-t border-border px-5 pb-5">
                   {/* Edit form */}
                   {isEditing && (
                     <EditRoleInline

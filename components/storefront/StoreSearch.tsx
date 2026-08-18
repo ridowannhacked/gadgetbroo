@@ -60,9 +60,9 @@ export default function StoreSearch() {
         placeholder="Search products or categories..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full bg-[#111318] border border-slate-800 text-white placeholder:text-slate-600 rounded-lg py-2.5 pl-3 pr-10 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-sm"
+        className="w-full bg-background border border-input text-foreground placeholder:text-muted-foreground rounded-lg py-2.5 pl-3 pr-10 focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-all text-sm"
       />
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
         <Search size={16} />
       </div>
     </div>

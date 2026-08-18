@@ -13,11 +13,11 @@ export default async function AdminCommentsPage() {
   }) : null;
 
   if (!fullUser) redirect('/login');
-  const isAdmin = fullUser.role?.name === 'admin';
+  const isAdmin = fullUser.role?.name?.toLowerCase() === 'admin';
   const hasReviewsPermission = isAdmin || fullUser.role?.permissions.some(p => p.resource === 'Reviews' && p.canView);
   
   if (!hasReviewsPermission) {
-    return <div className="p-8 text-white">You do not have permission to view this page.</div>;
+    return <div className="p-8 text-foreground">You do not have permission to view this page.</div>;
   }
 
   const comments = await prisma.comment.findMany({

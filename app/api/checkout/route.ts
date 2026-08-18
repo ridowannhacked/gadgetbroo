@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
 
+import { checkoutSchema } from "@/zodSchemas/checkoutSchema";
+
 export async function POST(req: Request) {
   try {
     const session = await auth.api.getSession({
@@ -15,6 +17,11 @@ export async function POST(req: Request) {
 
     const userId = session.user.id;
     const body = await req.json();
+    const parsed = checkoutSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+    }
 
     const {
       addressId,
@@ -27,11 +34,7 @@ export async function POST(req: Request) {
       saveAddress,
       paymentMethod,
       items,
-    } = body;
-
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: "Cart is empty." }, { status: 400 });
-    }
+    } = parsed.data;
 
     // Wrap everything in a Prisma transaction for hard-allocation (No Overselling)
     const order = await prisma.$transaction(async (tx) => {

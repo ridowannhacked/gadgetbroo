@@ -110,7 +110,7 @@ export function CreateCategoryButton({ onSuccess }: CreateProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#0e6ba8] hover:bg-[#0b5485] text-white flex items-center gap-2 px-4 py-2 rounded-md transition-colors">
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 px-4 py-2 rounded-md transition-colors">
           <Plus className="w-4 h-4" />
           <span>Add Category</span>
         </Button>
@@ -232,7 +232,7 @@ export function EditCategoryButton({ category, onSuccess }: EditProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
-          className="text-slate-400 hover:text-white transition-colors p-1"
+          className="text-muted-foreground hover:text-foreground transition-colors p-1"
           title="Edit category"
         >
           <Pencil className="w-4 h-4" />
@@ -337,7 +337,7 @@ export function DeleteCategoryButton({ category, onSuccess }: DeleteProps) {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <button
-          className="text-slate-400 hover:text-red-400 transition-colors p-1"
+          className="text-muted-foreground hover:text-destructive transition-colors p-1"
           title="Delete category"
         >
           <Trash2 className="w-4 h-4" />
@@ -348,7 +348,7 @@ export function DeleteCategoryButton({ category, onSuccess }: DeleteProps) {
           <AlertDialogTitle>Delete &quot;{category.name}&quot;?</AlertDialogTitle>
           <AlertDialogDescription>
             {category._count.products > 0 ? (
-              <span className="text-red-500 font-medium">
+              <span className="text-destructive font-medium">
                 ⚠ {category._count.products} product(s) are using this category. Remove them first.
               </span>
             ) : (
@@ -361,7 +361,7 @@ export function DeleteCategoryButton({ category, onSuccess }: DeleteProps) {
           <AlertDialogAction
             onClick={handleDelete}
             disabled={loading || category._count.products > 0}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-foreground"
           >
             {loading ? (
               <span className="flex items-center gap-2">

@@ -30,6 +30,7 @@ model User {
   reviews   Review[]
   comments  Comment[]
   auditLogs AuditLog[]
+  cart      Cart?
 
   @@unique([email])
   @@index([email, name])
@@ -137,9 +138,17 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum OrderSource {
+  ONLINE
+  POS
+  SOCIAL_MEDIA
+}
+
 enum PaymentMethod {
   STRIPE
   CASH_ON_DELIVERY
+  CASH
+  MANUAL_BKASH
 }
 
 model Category {
@@ -166,6 +175,9 @@ model Product {
   isFeatured  Boolean          @default(false)
   isDeleted   Boolean          @default(false)
   deletedAt   DateTime?
+  tags        String[]         @default([])
+  youtubeUrls String[]         @default([])
+  options     Json?            @default("[]")
   categoryId  String
   category    Category         @relation(fields: [categoryId], references: [id])
   variants    ProductVariant[]
@@ -186,9 +198,7 @@ model ProductVariant {
   name       String
   productId  String
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color      String?
-  size       String?
-  storage    String?
+  attributes Json?       @default("{}")
   sku        String      @unique
   price      Decimal     @db.Decimal(10, 2)
   stock      Int         @default(0)
@@ -196,6 +206,7 @@ model ProductVariant {
   isDeleted  Boolean     @default(false)
   deletedAt  DateTime?
   orderItems OrderItem[]
+  cartItems  CartItem[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
@@ -249,22 +260,29 @@ model Address {
   city       String
   state      String
   postalCode String
-  country    String   @default("BD")
-  isDefault  Boolean  @default(false)
+  country    String    @default("BD")
+  isDefault  Boolean   @default(false)
+  isDeleted  Boolean   @default(false)
+  deletedAt  DateTime?
   orders     Order[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([userId])
+  @@index([isDeleted])
   @@map("addresses")
 }
 
 model Order {
   id                    String        @id @default(cuid())
-  userId                String
-  user                  User          @relation(fields: [userId], references: [id])
-  addressId             String
-  address               Address       @relation(fields: [addressId], references: [id])
+  userId                String?
+  user                  User?         @relation(fields: [userId], references: [id])
+  addressId             String?
+  address               Address?      @relation(fields: [addressId], references: [id])
+  customerName          String?
+  customerPhone         String?
+  customerAddress       String?       @db.Text
+  orderSource           OrderSource   @default(ONLINE)
   status                OrderStatus   @default(PENDING)
   paymentStatus         PaymentStatus @default(UNPAID)
   paymentMethod         PaymentMethod @default(STRIPE)
@@ -363,33 +381,33 @@ model AuditLog {
 }
 
 model ShippingZone {
-  id          String   @id @default(cuid())
-  stateName   String   // e.g., "Dhaka Division"
-  cityName    String   // e.g., "Dhaka City", "Gazipur"
-  deliveryFee Decimal  @db.Decimal(10, 2)
-  isActive    Boolean  @default(true)
+  id          String  @id @default(cuid())
+  stateName   String // e.g., "Dhaka Division"
+  cityName    String // e.g., "Dhaka City", "Gazipur"
+  deliveryFee Decimal @db.Decimal(10, 2)
+  isActive    Boolean @default(true)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([stateName, cityName])
   @@map("shipping_zones")
 }
 
 model Comment {
-  id          String   @id @default(cuid())
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  body        String   @db.Text
-  isPublic    Boolean  @default(false)
-  
-  adminReply  String?  @db.Text
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  body     String  @db.Text
+  isPublic Boolean @default(false)
+
+  adminReply String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([productId])
   @@index([userId])
@@ -398,7 +416,7 @@ model Comment {
 
 model Page {
   id        String   @id @default(cuid())
-  slug      String   // e.g., "privacy-policy", "terms-conditions", "return-policy"
+  slug      String // e.g., "privacy-policy", "terms-conditions", "return-policy"
   language  String   @default("en") // "en" or "bn"
   content   String   @db.Text
   createdAt DateTime @default(now())
@@ -418,4 +436,63 @@ model StoreSettings {
   updatedAt      DateTime @updatedAt
 
   @@map("store_settings")
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @unique // A cart belongs to a user. Unique because 1-to-1 relationship.
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity  Int            @default(1)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([cartId, variantId]) // Same variant shouldn't appear twice in the same cart
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  ip        String   @default("")
+  event     String
+  page      String   @default("")
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([event])
+  @@index([sessionId])
+  @@map("analytics_events")
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  sessionId String
+  ip        String   @default("")
+  country   String   @default("")
+  city      String   @default("")
+  page      String
+  referrer  String   @default("")
+  device    String   @default("")
+  browser   String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([page])
+  @@map("page_views")
 }

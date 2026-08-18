@@ -8,6 +8,17 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { format } from "date-fns";
 import ProductCommentsClient from "@/components/storefront/ProductCommentsClient";
+import { FaYoutube } from "react-icons/fa";
+
+function getYouTubeEmbedUrl(url: string) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = match && match[2].length === 11 ? match[2] : null;
+  // controls=0 completely removes the bottom bar (Settings, CC, Volume, etc)
+  // rel=0 hides related videos from other channels at the end
+  // iv_load_policy=3 hides annotations
+  return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=2&rel=0&iv_load_policy=3&modestbranding=1` : null;
+}
 
 type ImageWithMedia = {
   id: string;
@@ -23,9 +34,13 @@ type Variant = {
   id: string;
   price: number;
   stock: number;
-  color: string | null;
-  size: string | null;
-  storage: string | null;
+  sku: string;
+  attributes: Record<string, string> | null;
+};
+
+type ProductOption = {
+  name: string;
+  values: string[];
 };
 
 type RelatedProduct = {
@@ -56,7 +71,9 @@ type ProductProp = {
   isFeatured: boolean;
   category: { slug: string; name: string };
   images: ImageWithMedia[];
+  options: ProductOption[] | null;
   variants: Variant[];
+  youtubeUrls: string[];
 };
 
 export default function ProductDetailsClient({
@@ -82,55 +99,36 @@ export default function ProductDetailsClient({
     });
   }, [product.images]);
 
-  const [activeMedia, setActiveMedia] = useState(sortedImages[0] || null);
+  const [activeMedia, setActiveMedia] = useState<ImageWithMedia | { isYoutube: true, url: string } | null>(sortedImages[0] || null);
 
-  // Variant selection states
-  const availableColors = useMemo(() => Array.from(new Set(product.variants.map((v: Variant) => v.color).filter(Boolean))) as string[], [product.variants]);
-  const availableSizes = useMemo(() => Array.from(new Set(product.variants.map((v: Variant) => v.size).filter(Boolean))) as string[], [product.variants]);
-  const availableStorages = useMemo(() => Array.from(new Set(product.variants.map((v: Variant) => v.storage).filter(Boolean))) as string[], [product.variants]);
+  // Image zoom state
+  const [zoomed, setZoomed] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
 
-  const [selectedColor, setSelectedColor] = useState<string | null>(availableColors[0] || null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(availableSizes[0] || null);
-  const [selectedStorage, setSelectedStorage] = useState<string | null>(availableStorages[0] || null);
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setZoomPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }
+
+  // Dynamic Variant Selection State
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
+    if (product.variants.length > 0 && product.variants[0].attributes) {
+      return product.variants[0].attributes;
+    }
+    return {};
+  });
+
+  const handleOptionSelect = (optionName: string, value: string) => {
+    setSelectedOptions(prev => ({
+      ...prev,
+      [optionName]: value
+    }));
+  };
 
   const [quantity, setQuantity] = useState<number>(1);
-
-  // Safe selection handlers to prevent invalid combinations
-  const handleSelectColor = (color: string) => {
-    setSelectedColor(color);
-    const exists = product.variants.find((v: Variant) => v.color === color && v.size === selectedSize && v.storage === selectedStorage);
-    if (!exists) {
-      const valid = product.variants.find((v: Variant) => v.color === color);
-      if (valid) {
-        if (valid.size) setSelectedSize(valid.size);
-        if (valid.storage) setSelectedStorage(valid.storage);
-      }
-    }
-  };
-
-  const handleSelectSize = (size: string) => {
-    setSelectedSize(size);
-    const exists = product.variants.find((v: Variant) => v.color === selectedColor && v.size === size && v.storage === selectedStorage);
-    if (!exists) {
-      const valid = product.variants.find((v: Variant) => v.size === size);
-      if (valid) {
-        if (valid.color) setSelectedColor(valid.color);
-        if (valid.storage) setSelectedStorage(valid.storage);
-      }
-    }
-  };
-
-  const handleSelectStorage = (storage: string) => {
-    setSelectedStorage(storage);
-    const exists = product.variants.find((v: Variant) => v.color === selectedColor && v.size === selectedSize && v.storage === storage);
-    if (!exists) {
-      const valid = product.variants.find((v: Variant) => v.storage === storage);
-      if (valid) {
-        if (valid.color) setSelectedColor(valid.color);
-        if (valid.size) setSelectedSize(valid.size);
-      }
-    }
-  };
 
   // Review form states
   const [rating, setRating] = useState(5);
@@ -143,16 +141,16 @@ export default function ProductDetailsClient({
 
   // Find the exact variant based on current selections
   const currentVariant = useMemo(() => {
-    // If there is only one variant (e.g. no options), just return it
     if (product.variants.length === 1) return product.variants[0];
 
     return product.variants.find((v: Variant) => {
-      const matchColor = selectedColor ? v.color === selectedColor : true;
-      const matchSize = selectedSize ? v.size === selectedSize : true;
-      const matchStorage = selectedStorage ? v.storage === selectedStorage : true;
-      return matchColor && matchSize && matchStorage;
+      if (!v.attributes) return false;
+      // Check if all selected options match this variant's attributes
+      return Object.entries(selectedOptions).every(
+        ([key, val]) => v.attributes![key] === val
+      );
     });
-  }, [product.variants, selectedColor, selectedSize, selectedStorage]);
+  }, [product.variants, selectedOptions]);
 
   // Fallback to first available variant if combination is totally invalid
   const displayVariant = currentVariant || product.variants[0];
@@ -173,11 +171,10 @@ export default function ProductDetailsClient({
 
     const imageUrl = sortedImages[0]?.mediaFile.url || "";
 
-    // Construct variant name
-    const variantNameParts = [];
-    if (displayVariant.color) variantNameParts.push(displayVariant.color);
-    if (displayVariant.size) variantNameParts.push(displayVariant.size);
-    if (displayVariant.storage) variantNameParts.push(displayVariant.storage);
+    // Construct dynamic variant name
+    const variantNameParts = displayVariant.attributes
+      ? Object.values(displayVariant.attributes)
+      : [];
     const variantName = variantNameParts.length > 0 ? variantNameParts.join(", ") : "Default";
 
     addItem({
@@ -246,35 +243,35 @@ export default function ProductDetailsClient({
   return (
     <div className="max-w-[1200px] mx-auto px-4 py-8 sm:py-12">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-sm text-slate-500 mb-8">
-        <Link href="/" className="hover:text-slate-300 transition-colors">Home</Link>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+        <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
         <span>/</span>
-        <Link href="/store" className="hover:text-slate-300 transition-colors">Store</Link>
+        <Link href="/store" className="hover:text-foreground transition-colors">Store</Link>
         <span>/</span>
-        <span className="text-slate-300 truncate max-w-[200px]">{product.name}</span>
+        <span className="text-muted-foreground truncate max-w-[200px]">{product.name}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-16">
 
         {/* Left Column: Image/Video Gallery */}
-        <div className="flex flex-col-reverse lg:flex-row gap-4 h-fit static lg:sticky lg:top-24 z-10">
+        <div className="lg:col-span-5 flex flex-col-reverse lg:flex-row gap-4 h-fit static lg:sticky lg:top-24 z-10">
           {/* Thumbnail Strip */}
           <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:max-h-[600px] no-scrollbar pb-2 lg:pb-0 w-full lg:w-20 flex-shrink-0">
             {sortedImages.map((img: ImageWithMedia, idx: number) => {
-              const isActive = activeMedia?.id === img.id;
+              const isActive = activeMedia && !("isYoutube" in activeMedia) && activeMedia?.id === img.id;
               const isVideo = img.mediaFile.fileType === "video";
 
               return (
                 <button
                   key={img.id}
                   onClick={() => setActiveMedia(img)}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-black ${isActive ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-800 hover:border-slate-600"
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-black ${isActive ? "border-primary ring-2 ring-blue-500/20" : "border-border hover:border-muted-foreground"
                     }`}
                 >
                   {isVideo ? (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-900 relative">
+                    <div className="w-full h-full flex items-center justify-center bg-muted relative">
                       <video src={img.mediaFile.url} className="w-full h-full object-cover opacity-60" />
-                      <Play className="absolute text-white w-6 h-6 drop-shadow-lg" fill="currentColor" />
+                      <Play className="absolute text-foreground w-6 h-6 drop-shadow-lg" fill="currentColor" />
                     </div>
                   ) : (
                     <Image
@@ -288,17 +285,60 @@ export default function ProductDetailsClient({
                 </button>
               );
             })}
+
+            {product.youtubeUrls?.map((url, idx) => {
+              const isActive = activeMedia && "isYoutube" in activeMedia && activeMedia.url === url;
+              return (
+                <button
+                  key={`yt-${idx}`}
+                  onClick={() => setActiveMedia({ isYoutube: true, url })}
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-red-500/10 ${isActive ? "border-red-500 ring-2 ring-red-500/20" : "border-border hover:border-red-500/50"
+                    }`}
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FaYoutube className="text-red-500 w-8 h-8" />
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           {/* Main Display */}
-          <div className="relative w-full aspect-square lg:aspect-[4/5] bg-[#111318] rounded-3xl overflow-hidden border border-slate-800/60 shadow-2xl flex items-center justify-center">
+          <div
+            className="relative w-full aspect-square lg:aspect-[4/5] bg-card rounded-3xl overflow-hidden border border-border/60 shadow-2xl flex items-center justify-center"
+            onMouseEnter={() => activeMedia && !("isYoutube" in activeMedia) && activeMedia.mediaFile.fileType !== "video" && setZoomed(true)}
+            onMouseLeave={() => setZoomed(false)}
+            onMouseMove={handleMouseMove}
+            style={{ cursor: activeMedia && !("isYoutube" in activeMedia) && activeMedia.mediaFile.fileType !== "video" ? (zoomed ? "zoom-out" : "zoom-in") : "default" }}
+          >
             {activeMedia ? (
-              activeMedia.mediaFile.fileType === "video" ? (
+              "isYoutube" in activeMedia ? (
+                <div className="w-full h-full">
+                  {getYouTubeEmbedUrl(activeMedia.url) ? (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={getYouTubeEmbedUrl(activeMedia.url)!}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted">
+                      Invalid YouTube URL
+                    </div>
+                  )}
+                </div>
+              ) : activeMedia.mediaFile.fileType === "video" ? (
                 <video
                   src={activeMedia.mediaFile.url}
                   controls
                   autoPlay
-                  className="w-full h-full object-contain"
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <Image
@@ -306,18 +346,22 @@ export default function ProductDetailsClient({
                   alt={product.name}
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain p-2 sm:p-8"
+                  className="object-cover transition-transform duration-100 ease-out"
+                  style={{
+                    transform: zoomed ? "scale(2.2)" : "scale(1)",
+                    transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                  }}
                   priority
                 />
               )
             ) : (
-              <div className="text-slate-600 font-medium">No Image Available</div>
+              <div className="text-muted-foreground font-medium">No Image Available</div>
             )}
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2">
               {product.isFeatured && (
-                <span className="bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
+                <span className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
                   Featured
                 </span>
               )}
@@ -326,17 +370,17 @@ export default function ProductDetailsClient({
         </div>
 
         {/* Right Column: Product Details */}
-        <div className="flex flex-col space-y-8">
+        <div className="lg:col-span-7 flex flex-col space-y-8">
           <div className="space-y-4">
-            <div className="text-blue-500 font-semibold tracking-wide text-sm uppercase">
+            <div className="text-primary font-semibold tracking-wide text-sm uppercase">
               {product.brand}
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">
               {product.name}
             </h1>
 
             <div className="flex items-center gap-4">
-              <div className="text-3xl font-bold text-white">
+              <div className="text-2xl font-bold text-foreground">
                 ৳{displayVariant.price.toLocaleString()}
               </div>
               {displayVariant.stock > 0 ? (
@@ -352,94 +396,59 @@ export default function ProductDetailsClient({
             </div>
           </div>
 
-          <div className="h-px bg-slate-800 w-full" />
+          <div className="h-px bg-muted w-full" />
 
-          {/* Options Selectors */}
+          {/* Dynamic Options Selectors */}
           <div className="space-y-6">
-            {availableColors.length > 0 && (
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-300">
-                  Color: <span className="text-white font-semibold">{selectedColor}</span>
+            {product.options && product.options.map((option) => (
+              <div key={option.name} className="space-y-3">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {option.name}: <span className="text-foreground font-semibold">{selectedOptions[option.name]}</span>
                 </label>
                 <div className="flex flex-wrap gap-3">
-                  {availableColors.map(color => (
-                    <button
-                      key={color}
-                      onClick={() => handleSelectColor(color)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${selectedColor === color
-                        ? "border-blue-500 bg-blue-500/10 text-white"
-                        : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
-                        }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+                  {option.values.map(val => {
+                    // Check if this specific option value is completely out of stock across all variants
+                    const matchingVariants = product.variants.filter(v => v.attributes?.[option.name] === val);
+                    const isOut = matchingVariants.length > 0 && matchingVariants.every(v => v.stock <= 0);
+                    const isSelected = selectedOptions[option.name] === val;
 
-            {availableSizes.length > 0 && (
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-300">
-                  Size: <span className="text-white font-semibold">{selectedSize}</span>
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {availableSizes.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => handleSelectSize(size)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${selectedSize === size
-                        ? "border-white bg-white text-black"
-                        : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
-                        }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                    return (
+                      <button
+                        key={val}
+                        onClick={() => handleOptionSelect(option.name, val)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${isSelected
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : isOut
+                            ? "border-border/50 text-muted-foreground bg-transparent line-through decoration-slate-600"
+                            : "border-border text-muted-foreground hover:border-muted-foreground hover:text-foreground bg-card"
+                          }`}
+                      >
+                        {val}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-
-            {availableStorages.length > 0 && (
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-300">
-                  Storage: <span className="text-white font-semibold">{selectedStorage}</span>
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {availableStorages.map(storage => (
-                    <button
-                      key={storage}
-                      onClick={() => handleSelectStorage(storage)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${selectedStorage === storage
-                        ? "border-white bg-white text-black"
-                        : "border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200 bg-[#111318]"
-                        }`}
-                    >
-                      {storage}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            ))}
           </div>
 
           {/* Action */}
           <div className="pt-4 flex flex-col sm:flex-row gap-4">
 
             {/* Quantity Selector */}
-            <div className="flex items-center justify-between border-2 border-slate-800 bg-[#111318] rounded-2xl p-2 w-full sm:w-32 flex-shrink-0">
+            <div className="flex items-center justify-between border-2 border-border bg-card rounded-2xl p-2 w-full sm:w-32 flex-shrink-0">
               <button
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
                 disabled={quantity <= 1}
-                className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
               >
                 <Minus className="w-5 h-5" />
               </button>
-              <span className="text-white font-semibold w-6 text-center">{quantity}</span>
+              <span className="text-foreground font-semibold w-6 text-center">{quantity}</span>
               <button
                 onClick={() => setQuantity(q => Math.min(displayVariant.stock, q + 1))}
                 disabled={quantity >= displayVariant.stock}
-                className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -448,7 +457,7 @@ export default function ProductDetailsClient({
             <button
               onClick={handleAddToCart}
               disabled={displayVariant.stock <= 0}
-              className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-lg font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_40px_rgba(37,99,235,0.2)] disabled:shadow-none"
+              className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground text-sm font-semibold py-1 rounded-xl flex items-center justify-center gap-1 transition-all active:scale-[0.98] shadow-[0_0_40px_rgba(37,99,235,0.2)] disabled:shadow-none"
             >
               <ShoppingCart className="w-5 h-5" />
               {displayVariant.stock > 0 ? "Add to Cart" : "Out of Stock"}
@@ -456,16 +465,16 @@ export default function ProductDetailsClient({
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-2 gap-4 py-6 border-y border-slate-800 text-slate-400 text-sm">
+          <div className="grid grid-cols-2 gap-4 py-6 border-y border-border text-muted-foreground text-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center shrink-0">
-                <Truck className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <Truck className="w-5 h-5 text-primary" />
               </div>
               <span>Free delivery on orders over ৳5000</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-primary" />
               </div>
               <span>1 Year Official Warranty</span>
             </div>
@@ -473,24 +482,23 @@ export default function ProductDetailsClient({
 
           {/* Description */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white">Product Description</h3>
-            <div className="prose prose-invert prose-slate max-w-none prose-p:leading-relaxed prose-p:text-slate-400">
-              {product.description.split('\n').map((paragraph: string, i: number) => (
-                <p key={i}>{paragraph}</p>
-              ))}
-            </div>
+            <h3 className="text-xl font-bold text-foreground">Product Description</h3>
+            <div
+              className="prose dark:prose-invert  max-w-none prose-p:leading-relaxed prose-p:text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
           </div>
         </div>
       </div>
 
       {/* Related Products Section */}
       {relatedProducts && relatedProducts.length > 0 && (
-        <div className="mt-16 lg:mt-24 border-t border-slate-800 pt-12">
+        <div className="mt-16 lg:mt-24 border-t border-border pt-12">
           <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-            <h2 className="text-2xl font-bold text-white tracking-tight">You Might Also Like</h2>
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">You Might Also Like</h2>
             <Link
               href={`/store?category=${product.category.slug}`}
-              className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+              className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
             >
               View more from {product.category.name} <ArrowRight size={14} />
             </Link>
@@ -505,9 +513,9 @@ export default function ProductDetailsClient({
                 <Link
                   href={`/product/${relatedProd.slug}`}
                   key={relatedProd.id}
-                  className="group flex flex-col bg-[#0f1219] border border-slate-800/60 rounded-2xl p-3 sm:p-5 hover:border-slate-700 transition-colors"
+                  className="group flex flex-col bg-card border border-border/60 rounded-2xl p-3 sm:p-5 hover:border-primary/50 transition-colors"
                 >
-                  <div className="aspect-square w-full rounded-xl bg-[#0a0a0a] flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
+                  <div className="aspect-square w-full rounded-xl bg-background flex items-center justify-center mb-4 sm:mb-6 overflow-hidden relative">
                     {primaryImage ? (
                       <Image
                         src={primaryImage}
@@ -517,10 +525,10 @@ export default function ProductDetailsClient({
                         className="object-contain p-2 sm:p-4 group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="text-slate-700 text-xs">No Image</div>
+                      <div className="text-muted-foreground text-xs">No Image</div>
                     )}
                     {relatedProd.isFeatured && (
-                      <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
+                      <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">
                         Featured
                       </span>
                     )}
@@ -528,19 +536,19 @@ export default function ProductDetailsClient({
 
                   <div className="flex flex-col flex-grow">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] sm:text-xs text-slate-500">{relatedProd.brand}</span>
-                      <span className="text-[8px] sm:text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{relatedProd.category.name}</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">{relatedProd.brand}</span>
+                      <span className="text-[8px] sm:text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{relatedProd.category.name}</span>
                     </div>
-                    <h3 className="text-sm sm:text-base font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {relatedProd.name}
                     </h3>
 
                     <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between">
-                      <div className="text-base sm:text-lg font-bold text-slate-200">
+                      <div className="text-base sm:text-lg font-bold text-foreground">
                         {startingPrice ? `৳${Number(startingPrice).toFixed(2)}` : 'TBA'}
                       </div>
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                        <ArrowRight size={12} className="text-white sm:w-[14px] sm:h-[14px]" />
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary transition-colors">
+                        <ArrowRight size={12} className="text-foreground sm:w-[14px] sm:h-[14px]" />
                       </div>
                     </div>
                   </div>
@@ -551,12 +559,12 @@ export default function ProductDetailsClient({
         </div>
       )}
       {/* Reviews Section */}
-      <div className="mt-16 lg:mt-24 border-t border-slate-800 pt-12">
+      <div className="mt-16 lg:mt-24 border-t border-border pt-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Customer Reviews</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Customer Reviews</h2>
               <div className="flex items-center gap-3">
                 <div className="flex gap-0.5 text-amber-500">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -565,11 +573,11 @@ export default function ProductDetailsClient({
                         ? "currentColor" : "none"
                     } className={
                       localReviews.length > 0 && i < Math.round(localReviews.reduce((acc: number, r: ReviewWithUser) => acc + r.rating, 0) / localReviews.length)
-                        ? "text-amber-500" : "text-slate-700"
+                        ? "text-amber-500" : "text-muted-foreground"
                     } />
                   ))}
                 </div>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-muted-foreground">
                   {localReviews.length > 0
                     ? `Based on ${localReviews.length} review${localReviews.length === 1 ? '' : 's'}`
                     : "No reviews yet"}
@@ -578,11 +586,11 @@ export default function ProductDetailsClient({
             </div>
 
             {localCanReview && (
-              <div className="bg-[#111318] border border-slate-800 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-white mb-4">Write a Review</h3>
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-foreground mb-4">Write a Review</h3>
                 <form onSubmit={handleSubmitReview} className="space-y-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">Rating</label>
+                    <label className="block text-xs text-muted-foreground mb-2 uppercase tracking-wider">Rating</label>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -594,7 +602,7 @@ export default function ProductDetailsClient({
                           <Star
                             size={24}
                             fill={star <= rating ? "currentColor" : "none"}
-                            className={star <= rating ? "text-amber-500" : "text-slate-700 hover:text-slate-500"}
+                            className={star <= rating ? "text-amber-500" : "text-muted-foreground hover:text-muted-foreground"}
                           />
                         </button>
                       ))}
@@ -602,31 +610,31 @@ export default function ProductDetailsClient({
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">Title (Optional)</label>
+                    <label className="block text-xs text-muted-foreground mb-2 uppercase tracking-wider">Title (Optional)</label>
                     <input
                       type="text"
                       value={reviewTitle}
                       onChange={(e) => setReviewTitle(e.target.value)}
                       placeholder="Summary of your experience"
-                      className="w-full bg-[#0a0a0a] border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">Review</label>
+                    <label className="block text-xs text-muted-foreground mb-2 uppercase tracking-wider">Review</label>
                     <textarea
                       required
                       value={reviewContent}
                       onChange={(e) => setReviewContent(e.target.value)}
                       placeholder="What did you like or dislike?"
-                      className="w-full h-32 bg-[#0a0a0a] border border-slate-800 rounded-lg p-4 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                      className="w-full h-32 bg-background border border-border rounded-lg p-4 text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSubmittingReview}
-                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                    className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
                   >
                     {isSubmittingReview && <Loader2 size={16} className="animate-spin" />}
                     Submit Review
@@ -636,8 +644,8 @@ export default function ProductDetailsClient({
             )}
 
             {!localCanReview && (
-              <div className="bg-[#111318]/50 border border-slate-800/50 rounded-2xl p-5 text-sm text-slate-400 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+              <div className="bg-card/50 border border-border/50 rounded-2xl p-5 text-sm text-muted-foreground flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <p>
                   Only logged-in customers who have purchased and received this item can leave a review. This guarantees 100% verified authentic reviews.
                 </p>
@@ -647,27 +655,27 @@ export default function ProductDetailsClient({
 
           <div className="lg:col-span-2 space-y-6">
             {localReviews.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+              <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-2xl">
                 <Star className="w-8 h-8 mx-auto mb-3 opacity-20" />
                 <p>Be the first to review this product!</p>
               </div>
             ) : (
               <div className="space-y-6">
                 {localReviews.map((review: ReviewWithUser) => (
-                  <div key={review.id} className="border-b border-slate-800/50 pb-6 last:border-0 last:pb-0">
+                  <div key={review.id} className="border-b border-border/50 pb-6 last:border-0 last:pb-0">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 shrink-0">
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground shrink-0">
                           <User size={18} />
                         </div>
                         <div>
-                          <div className="font-medium text-white flex items-center gap-2">
+                          <div className="font-medium text-foreground flex items-center gap-2">
                             {review.user.name}
-                            <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold border border-blue-500/20">
+                            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold border border-primary/20">
                               Verified
                             </span>
                           </div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs text-muted-foreground">
                             {format(new Date(review.createdAt), "MMMM d, yyyy")}
                           </div>
                         </div>
@@ -678,15 +686,15 @@ export default function ProductDetailsClient({
                             key={i}
                             size={14}
                             fill={i < review.rating ? "currentColor" : "none"}
-                            className={i < review.rating ? "text-amber-500" : "text-slate-700"}
+                            className={i < review.rating ? "text-amber-500" : "text-muted-foreground"}
                           />
                         ))}
                       </div>
                     </div>
                     {review.title && (
-                      <h4 className="font-semibold text-white mb-2 text-sm">{review.title}</h4>
+                      <h4 className="font-semibold text-foreground mb-2 text-sm">{review.title}</h4>
                     )}
-                    <p className="text-sm text-slate-300 leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {review.body}
                     </p>
                   </div>

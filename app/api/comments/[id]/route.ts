@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "@/helpers/get-servesession";
+import { updateCommentSchema } from "@/zodSchemas/commentSchema";
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
@@ -22,9 +23,16 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       where: { id: session.user.id },
       include: { role: true }
     });
-    const isAdmin = fullUser?.role?.name === 'admin';
+    const isAdmin = fullUser?.role?.name?.toLowerCase() === 'admin';
 
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = updateCommentSchema.safeParse(rawBody);
+
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
+    }
+
+    const body = parsed.data;
 
     // Check permissions
     if (isAdmin) {
@@ -39,7 +47,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       return NextResponse.json({ success: true, data: updatedComment });
     } else if (comment.userId === session.user.id) {
       // User can only update their own comment body
-      if (body.body === undefined || body.body.trim() === "") {
+      if (!body.body || body.body.trim() === "") {
         return NextResponse.json({ success: false, error: "Comment body is required" }, { status: 400 });
       }
       const updatedComment = await prisma.comment.update({
@@ -78,7 +86,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       where: { id: session.user.id },
       include: { role: true }
     });
-    const isAdmin = fullUser?.role?.name === 'admin';
+    const isAdmin = fullUser?.role?.name?.toLowerCase() === 'admin';
 
     // Only author or admin can delete
     if (isAdmin || comment.userId === session.user.id) {

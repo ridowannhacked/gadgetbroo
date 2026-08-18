@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "@/helpers/get-servesession";
+import { createCommentSchema } from "@/zodSchemas/commentSchema";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const skip = (page - 1) * limit;
 
     if (!productId) {
       return NextResponse.json({ success: false, error: "Product ID is required" }, { status: 400 });
@@ -20,38 +24,42 @@ export async function GET(req: NextRequest) {
         where: { id: userId },
         include: { role: true },
       });
-      isAdmin = fullUser?.role?.name === 'admin';
+      isAdmin = fullUser?.role?.name?.toLowerCase() === 'admin';
     }
 
-    // Fetch comments based on visibility rules
-    // Rule: You can see the comment IF it is public, OR if you are the author, OR if you are an admin.
-    const comments = await prisma.comment.findMany({
-      where: {
-        productId: productId,
-        OR: [
-          { isPublic: true },
-          ...(userId ? [{ userId: userId }] : []),
-          ...(isAdmin ? [{}] : []) // If admin, match anything (this overrides OR since it includes all) Wait, actually if isAdmin is true, we should just not have an OR filter, or `{}` matches all.
-        ]
-      },
-      include: {
-        user: {
-          select: { name: true, image: true }
-        }
-      },
-      orderBy: { createdAt: "desc" }
-    });
-    
-    // Fix logic: if admin, we want to fetch all comments for the product.
-    const finalComments = isAdmin 
-      ? await prisma.comment.findMany({
-          where: { productId },
-          include: { user: { select: { name: true, image: true } } },
-          orderBy: { createdAt: "desc" }
-        })
-      : comments;
+    const whereClause = isAdmin 
+      ? { productId }
+      : {
+          productId,
+          OR: [
+            { isPublic: true },
+            ...(userId ? [{ userId: userId }] : [])
+          ]
+        };
 
-    return NextResponse.json({ success: true, data: finalComments });
+    const [comments, totalCount] = await prisma.$transaction([
+      prisma.comment.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          user: { select: { name: true, image: true } }
+        },
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.comment.count({ where: whereClause })
+    ]);
+
+    return NextResponse.json({ 
+      success: true, 
+      data: comments,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    });
   } catch (error: unknown) {
     console.error("Error fetching comments:", error);
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
@@ -66,13 +74,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { productId, body: commentBody } = body;
-
-    if (!productId || !commentBody || commentBody.trim() === "") {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    const parsed = createCommentSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
     }
 
-    // By default, comments are NOT public
+    const { productId, body: commentBody } = parsed.data;
+
     const comment = await prisma.comment.create({
       data: {
         productId,
@@ -81,9 +90,7 @@ export async function POST(req: NextRequest) {
         isPublic: false,
       },
       include: {
-        user: {
-          select: { name: true, image: true }
-        }
+        user: { select: { name: true, image: true } }
       }
     });
 

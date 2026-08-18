@@ -3,15 +3,11 @@ import { z } from "zod";
 
 export const productVariantSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1, "Variant name is required"), // "256GB Black", "Default"
-  sku: z.string().min(1, "SKU is required"),
+  name: z.string().optional(), 
+  sku: z.string().optional(), // SKU is now auto-generated if left blank
   price: z.coerce.number().min(1, "Price must be greater than 0"),
   stock: z.coerce.number().min(0, "Stock cannot be negative"),
-  color: z.string().optional(),
-  storage: z.string().optional(),
-  size: z.string().optional(),
-  // Explicit boolean — no .default() so the inferred *input* type stays `boolean`,
-  // not `boolean | undefined`. Defaults are set in useForm({ defaultValues }).
+  attributes: z.record(z.string(), z.string()).nullable().optional(),
   isActive: z.boolean(),
 });
 
@@ -26,6 +22,11 @@ export const createProductSchema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   isActive: z.boolean(),
   isFeatured: z.boolean(),
+  options: z.array(
+    z.object({ name: z.string(), values: z.array(z.string()) })
+  ).nullable().optional(),
+  tags: z.array(z.string()).default([]),
+  youtubeUrls: z.array(z.string().url("Must be a valid URL")).default([]),
   variants: z.array(productVariantSchema).min(1, "At least one variant is required"),
 });
 

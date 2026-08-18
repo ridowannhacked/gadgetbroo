@@ -53,32 +53,32 @@ export default function ShippingZonesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0d0f12] text-slate-200 p-4 sm:p-6 lg:p-10">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-10">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             Shipping Zones
           </h1>
           <CreateShippingZoneButton onSuccess={fetchZones} />
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
             placeholder="Search by city or state..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-[#12151a]/80 border-slate-800/80 text-slate-200 placeholder:text-slate-500 w-full sm:max-w-md"
+            className="pl-10 bg-card/80 border-border text-foreground placeholder:text-muted-foreground w-full sm:max-w-md"
           />
         </div>
 
-        <div className="bg-[#12151a]/80 border border-slate-800/80 rounded-xl overflow-hidden shadow-xl backdrop-blur-sm">
+        <div className="bg-card/80 border border-border rounded-xl overflow-hidden shadow-xl backdrop-blur-sm">
           
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="text-slate-400 text-sm font-medium border-b border-slate-800/60">
+                <tr className="text-muted-foreground text-sm font-medium border-b border-border">
                   <th className="py-4 px-6">State / Division</th>
                   <th className="py-4 px-6">City / Area</th>
                   <th className="py-4 px-6">Delivery Fee</th>
@@ -86,18 +86,18 @@ export default function ShippingZonesPage() {
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40 text-sm">
+              <tbody className="divide-y divide-border text-sm">
                 {filteredZones.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-10 text-center text-slate-500">
+                    <td colSpan={5} className="py-10 text-center text-muted-foreground">
                       No shipping zones found.
                     </td>
                   </tr>
                 ) : filteredZones.map((zone) => (
-                  <tr key={zone.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-4 px-6 font-medium text-white">{zone.stateName}</td>
-                    <td className="py-4 px-6 text-slate-300">{zone.cityName}</td>
-                    <td className="py-4 px-6 font-semibold text-slate-200">
+                  <tr key={zone.id} className="hover:bg-muted transition-colors">
+                    <td className="py-4 px-6 font-medium text-foreground">{zone.stateName}</td>
+                    <td className="py-4 px-6 text-muted-foreground">{zone.cityName}</td>
+                    <td className="py-4 px-6 font-semibold text-foreground">
                       ৳{Number(zone.deliveryFee).toFixed(2)}
                     </td>
                     <td className="py-4 px-6">
@@ -121,29 +121,29 @@ export default function ShippingZonesPage() {
           </div>
 
           {/* Mobile View */}
-          <div className="block md:hidden divide-y divide-slate-800/60">
+          <div className="block md:hidden divide-y divide-border">
             {filteredZones.length === 0 ? (
-              <p className="py-10 text-center text-slate-500 text-sm">No shipping zones found.</p>
+              <p className="py-10 text-center text-muted-foreground text-sm">No shipping zones found.</p>
             ) : filteredZones.map((zone) => (
               <div key={zone.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-white">{zone.cityName}</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">{zone.stateName}</p>
+                    <h3 className="font-semibold text-foreground">{zone.cityName}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{zone.stateName}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <EditShippingZoneButton zone={zone} onSuccess={fetchZones} />
                     <DeleteShippingZoneButton zone={zone} onSuccess={fetchZones} />
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-800/40">
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${zone.isActive
                       ? "bg-green-500/10 text-green-400"
                       : "bg-gray-500/10 text-gray-400"
                     }`}>
                     {zone.isActive ? "Active" : "Inactive"}
                   </span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-foreground">
                     ৳{Number(zone.deliveryFee).toFixed(2)}
                   </span>
                 </div>

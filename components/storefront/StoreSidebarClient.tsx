@@ -11,7 +11,7 @@ export default function StoreSidebarClient({ children }: { children: React.React
       {/* Mobile Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden w-full flex items-center justify-center gap-2 bg-[#12151a] border border-slate-800 text-white py-3 px-4 rounded-xl font-medium mb-6 transition-colors hover:bg-slate-800"
+        className="md:hidden w-full flex items-center justify-center gap-2 bg-card border border-border text-foreground py-3 px-4 rounded-xl font-medium mb-6 transition-colors hover:bg-accent hover:text-accent-foreground"
       >
         <Search size={18} />
         {isOpen ? "Close Search & Categories" : "Search & Categories"}

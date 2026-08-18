@@ -11,6 +11,32 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // This ensures ANY new user (Email OR Google) gets the customer role automatically
+          const customerRole = await prisma.role.findUnique({
+            where: { name: "customer" },
+          });
+          if (customerRole && !user.roleId) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { roleId: customerRole.id },
+            });
+          }
+        }
+      }
+    }
+  },
 
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
@@ -62,26 +88,6 @@ export const auth = betterAuth({
       }
     }),
 
-    after: createAuthMiddleware(async (ctx) => {
-      if (ctx.path === "/sign-up/email") {
-        const body = ctx.body as { email?: string } | undefined;
-        const email = body?.email;
-
-        if (email) {
-          const customerRole = await prisma.role.findUnique({
-            where: { name: "customer" },
-          });
-          const user = await prisma.user.findUnique({ where: { email } });
-
-          if (customerRole && user && !user.roleId) {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { roleId: customerRole.id },
-            });
-          }
-        }
-      }
-    }),
   }
 });
 

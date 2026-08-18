@@ -78,7 +78,12 @@ export function SignInForm() {
   }
 
   async function handleSocialSignIn(provider: "google" | "github") {
-    // TODO: Handle social sign in
+    setLoading(true);
+    await authClient.signIn.social({
+      provider,
+      callbackURL: "/",
+    });
+    setLoading(false);
   }
 
   return (

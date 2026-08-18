@@ -32,31 +32,24 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
   return (
     <>
       <div className="flex items-center gap-3">
-        {/* Mobile Logo Button */}
+        {/* Mobile Menu Toggle */}
         <button 
           onClick={() => setIsOpen(true)}
-          className="md:hidden flex items-center gap-2"
+          className="md:hidden flex items-center justify-center p-2 -ml-2 rounded-lg hover:bg-accent text-foreground transition-colors"
+          aria-label="Open menu"
         >
-          {bannerUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={bannerUrl} alt="GadgetBroo" className="h-6 w-auto object-contain" />
-          ) : (
-            <h1 className="text-lg font-bold tracking-wider text-white">
-              G<span className="hidden sm:inline">ADGET</span>
-              <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
-            </h1>
-          )}
+          <Menu size={24} className="text-foreground" />
         </button>
         
-        {/* Desktop Logo Link */}
-        <Link href="/" className="hidden md:flex items-center gap-2">
+        {/* Logo Link (Desktop & Mobile) */}
+        <Link href="/" className="flex items-center gap-2">
           {bannerUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={bannerUrl} alt="GadgetBroo" className="h-6 w-auto object-contain" />
+            <img src={bannerUrl} alt="GadgetBroo" className="h-6 sm:h-7 w-auto object-contain dark:brightness-110" />
           ) : (
-            <h1 className="text-lg font-bold tracking-wider text-white">
+            <h1 className="text-lg sm:text-xl font-bold tracking-wider text-foreground">
               G<span className="hidden sm:inline">ADGET</span>
-              <span className="text-blue-500">B<span className="hidden sm:inline">ROO</span></span>
+              <span className="text-primary">B<span className="hidden sm:inline">ROO</span></span>
             </h1>
           )}
         </Link>
@@ -72,19 +65,19 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
           />
           
           {/* Sidebar */}
-          <div className="relative w-4/5 max-w-sm bg-[#0a0a0a] border-r border-slate-800 shadow-2xl h-full flex flex-col animate-in slide-in-from-left duration-300">
-            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+          <div className="relative w-4/5 max-w-sm bg-background border-r border-border shadow-2xl h-full flex flex-col animate-in slide-in-from-left duration-300">
+            <div className="flex items-center justify-between p-5 border-b border-border">
               {faviconUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={faviconUrl} alt="GB" className="h-8 w-auto object-contain" />
               ) : (
-                <h2 className="text-lg font-bold text-white tracking-wider">
+                <h2 className="text-lg font-bold text-foreground tracking-wider">
                   G<span className="text-blue-500">B</span>
                 </h2>
               )}
               <button 
                 onClick={() => setIsOpen(false)}
-                className="p-2 text-slate-400 hover:text-white rounded-md bg-slate-900"
+                className="p-2 text-muted-foreground hover:text-foreground rounded-md bg-accent"
               >
                 <X size={20} />
               </button>
@@ -102,7 +95,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Home size={18} className="text-emerald-400" />
                   Home
@@ -110,7 +103,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/store" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Store size={18} className="text-blue-400" />
                   All Store
@@ -118,7 +111,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/store?category=chargers-and-adapters" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Zap size={18} className="text-amber-400" />
                   Chargers & Adapters
@@ -126,7 +119,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/store?category=mobile-cooler" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Smartphone size={18} className="text-emerald-400" />
                   Mobile Coolers
@@ -134,7 +127,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/store?category=smart-watch" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Watch size={18} className="text-purple-400" />
                   Smart Watches
@@ -142,7 +135,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/store?category=sounds-audio" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Headphones size={18} className="text-rose-400" />
                   Sounds & Audio
@@ -150,7 +143,7 @@ export default function MobileNav({ bannerUrl, faviconUrl }: MobileNavProps) {
                 <Link 
                   href="/store?category=power-bank" 
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Battery size={18} className="text-sky-400" />
                   Power Banks

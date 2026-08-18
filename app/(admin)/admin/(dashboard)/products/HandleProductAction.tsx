@@ -57,7 +57,7 @@ export function DeleteProductButton({ product, onSuccess }: Props) {
       <AlertDialogTrigger asChild>
         <button
           type="button"
-          className="text-slate-400 hover:text-red-400 transition-colors p-1"
+          className="text-muted-foreground hover:text-destructive transition-colors p-1"
           title="Delete product"
         >
           <Trash2 className="w-4 h-4" />
@@ -74,7 +74,7 @@ export function DeleteProductButton({ product, onSuccess }: Props) {
                 {product._count.images > 0 && (
                   <>
                     ,{" "}
-                    <span className="font-medium text-slate-300">
+                    <span className="font-medium text-muted-foreground">
                       {product._count.images} image
                       {product._count.images > 1 ? "s" : ""}
                     </span>
@@ -83,7 +83,7 @@ export function DeleteProductButton({ product, onSuccess }: Props) {
                 {product._count.variants > 0 && (
                   <>
                     , and{" "}
-                    <span className="font-medium text-slate-300">
+                    <span className="font-medium text-muted-foreground">
                       {product._count.variants} variant
                       {product._count.variants > 1 ? "s" : ""}
                     </span>
@@ -91,7 +91,7 @@ export function DeleteProductButton({ product, onSuccess }: Props) {
                 )}
                 .
               </p>
-              <p className="text-red-500/90 font-medium">
+              <p className="text-destructive/90 font-medium">
                 This cannot be undone. If the product is in any order, deletion
                 will be blocked.
               </p>
@@ -104,7 +104,7 @@ export function DeleteProductButton({ product, onSuccess }: Props) {
           <AlertDialogAction
             onClick={handleDelete}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-foreground"
           >
             {loading ? (
               <span className="flex items-center gap-2">
