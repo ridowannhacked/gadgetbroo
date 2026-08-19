@@ -45,7 +45,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     revalidatePath("/");
 
-    // Note: We leave the raw ImageKit file alone so it remains in the Media Library for other uses.
+    // Note: We leave the raw Garage object alone so it remains in the Media Library for other uses.
     return NextResponse.json({ success: true, message: "Banner deleted" });
   } catch (error) {
     console.error(error);

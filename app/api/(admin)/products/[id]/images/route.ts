@@ -91,7 +91,7 @@ export async function DELETE(
   });
   if (!image) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Best-effort delete from ImageKit (only if not shared with other products)
+  // Best-effort delete from Garage (only if not shared with other products)
   if (image.mediaFile?.fileId) {
     const usageCount = await prisma.productImage.count({
       where: { mediaFileId: image.mediaFileId, id: { not: imageId } },

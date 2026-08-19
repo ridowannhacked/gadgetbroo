@@ -28,8 +28,7 @@ export function proxy(request: CustomNextRequest) {
     pathname.startsWith('/api/checkout') ||
     pathname.startsWith('/api/comments') ||
     pathname.startsWith('/api/reviews') ||
-    pathname.startsWith('/api/media') ||
-    pathname.startsWith('/api/imagekit-upload-auth');
+    pathname.startsWith('/api/media');
 
   if (isProtectedApi) {
     let ip = request.ip || 
@@ -92,6 +91,5 @@ export const config = {
     "/api/comments/:path*",
     "/api/reviews/:path*",
     "/api/media/:path*",
-    "/api/imagekit-upload-auth/:path*"
   ],
 };

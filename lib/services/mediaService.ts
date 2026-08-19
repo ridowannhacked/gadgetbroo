@@ -1,5 +1,4 @@
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Validate environment variables early
 if (
@@ -28,45 +27,44 @@ const PUBLIC_URL = process.env.GARAGE_PUBLIC_URL || `${process.env.GARAGE_ENDPOI
 
 export const MediaService = {
   /**
-   * Generates a temporary Presigned URL for the client to upload files directly to the S3 bucket.
+   * Builds a unique, flat object key — no folder nesting — so the public URL is
+   * always `${GARAGE_PUBLIC_URL}/<key>` e.g. https://octetit-uploads.cdn.octetit.com/<image_name>
    * @param fileName - Original name of the file (e.g. image.png)
-   * @param fileType - MIME type (e.g. image/png)
-   * @param folder - Folder path (e.g. /prod/products)
    */
-  async generatePresignedUrl(fileName: string, fileType: string, folder: string) {
+  buildFileKey(fileName: string): string {
+    const uniqueId = crypto.randomUUID();
+    const extension = fileName.split(".").pop() || "jpg";
+    const cleanName = fileName.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 30);
+    return `${uniqueId}-${cleanName}.${extension}`;
+  },
+
+  /**
+   * Uploads a file to the S3 bucket directly from the server (no browser CORS involved —
+   * this mirrors the proven pattern already running in the sibling octetit project, since
+   * Garage's edge here does not reliably answer cross-origin preflight requests).
+   * @param fileKey - Object key to store under (see buildFileKey)
+   * @param body - Raw file bytes
+   * @param contentType - MIME type (e.g. image/png)
+   */
+  async uploadFile(fileKey: string, body: Buffer, contentType: string) {
     try {
-      // Create a unique file key to prevent overwrites
-      const uniqueId = crypto.randomUUID();
-      const extension = fileName.split('.').pop() || 'jpg';
-      // Clean filename for URL
-      const cleanName = fileName.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 30);
-
-      // The exact S3 Object Key (Path in the bucket)
-      // Remove leading slash if any
-      const safeFolder = folder.startsWith('/') ? folder.substring(1) : folder;
-      const fileKey = `${safeFolder}/${uniqueId}-${cleanName}.${extension}`;
-
       const command = new PutObjectCommand({
         Bucket: BUCKET,
         Key: fileKey,
-        ContentType: fileType,
-        ACL: "public-read", // Uncomment if bucket requires ACLs, Garage usually uses bucket policies instead
+        Body: body,
+        ContentType: contentType,
+        ACL: "public-read",
       });
 
-      // Generate a presigned URL valid for 5 minutes
-      const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
-
-      // Calculate final public URL
-      const finalUrl = `${PUBLIC_URL}/${fileKey}`;
+      await s3Client.send(command);
 
       return {
-        presignedUrl,
         fileKey,
-        url: finalUrl,
+        url: `${PUBLIC_URL}/${fileKey}`,
       };
     } catch (error) {
-      console.error("MediaService: Error generating presigned URL", error);
-      throw new Error("Failed to generate upload URL");
+      console.error("MediaService: Error uploading file", error);
+      throw new Error("Failed to upload file to storage");
     }
   },
 

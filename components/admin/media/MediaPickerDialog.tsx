@@ -282,7 +282,7 @@ export function MediaPickerDialog({
 
   /* ────────────────────────────────────────────────────────────────
      STEP 4.3: Actual upload — only called when "Upload Media" is clicked.
-     Pulls from stagedFiles, runs hash → dedup → IK upload → DB register.
+     Pulls from stagedFiles, runs hash → dedup → server-side Garage upload → DB register.
   ────────────────────────────────────────────────────────────────── */
   const processFiles = useCallback(
     async (filesToUpload: File[]) => {
@@ -325,37 +325,27 @@ export function MediaPickerDialog({
             continue;
           }
 
-          // 3. Get S3 Presigned URL credentials
+          // 3. Upload the file to Garage via our own server (no browser CORS involved)
           updateItem({ status: "uploading" });
           const mediaType = file.type.startsWith("video/") ? "video" : "image";
-          const authRes = await fetch("/api/media/upload-url", {
+          const uploadForm = new FormData();
+          uploadForm.append("file", file);
+          const uploadRes = await fetch("/api/media/upload", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fileName: file.name, fileType: file.type, type: mediaType })
+            body: uploadForm,
           });
-          if (!authRes.ok) throw new Error("Failed to get upload credentials");
-          const authParams = await authRes.json();
+          const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) throw new Error(uploadData.error || "Cloud upload failed");
 
-          // 4. Direct upload to S3 via PUT
-          const s3Res = await fetch(authParams.presignedUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": file.type,
-              "x-amz-acl": "public-read",
-            },
-            body: file,
-          });
-          if (!s3Res.ok) throw new Error("Cloud upload failed");
-
-          // 5. Register in PostgreSQL with hash
+          // 4. Register in PostgreSQL with hash
           const regRes = await fetch("/api/media", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              url: authParams.url,
-              fileId: authParams.fileKey,
+              url: uploadData.url,
+              fileId: uploadData.fileKey,
               name: file.name,
-              filePath: authParams.fileKey,
+              filePath: uploadData.fileKey,
               fileType: mediaType,
               mimeType: file.type,
               size: file.size,

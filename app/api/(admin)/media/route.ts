@@ -10,8 +10,8 @@ import { checkPermission } from "@/lib/rbac";
 /**
  * GET /api/media
  *
- * Reads EXCLUSIVELY from PostgreSQL — zero ImageKit SDK calls.
- * 5ms Postgres query vs 400–1200ms ImageKit API round-trip.
+ * Reads EXCLUSIVELY from PostgreSQL — zero Garage API calls.
+ * 5ms Postgres query vs a network round-trip to Garage.
  *
  * Query params:
  *   search  — filter by filename (case-insensitive contains)
@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/media
  *
- * Registers a newly uploaded ImageKit asset in PostgreSQL.
- * Called by MediaPickerDialog after a successful ImageKit direct upload.
+ * Registers a newly uploaded Garage (S3-compatible) asset in PostgreSQL.
+ * Called by MediaPickerDialog after a successful direct-to-Garage upload.
  *
  * Body: { url, fileId, name, filePath, fileType, mimeType, size, width, height, hash }
  */
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
 /**
  * DELETE /api/media
  *
- * Deletes from both ImageKit CDN and PostgreSQL.
+ * Deletes from both Garage storage and PostgreSQL.
  * Blocked if the file is still linked to any product.
  *
  * Body: { fileId: string }
@@ -187,7 +187,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete from ImageKit CDN first, then clean DB record
+    // Delete from Garage storage first, then clean DB record
     await MediaService.deleteFile(fileId);
     await prisma.mediaFile.delete({ where: { fileId } });
 

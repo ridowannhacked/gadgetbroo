@@ -216,10 +216,10 @@ model ProductVariant {
 
 model MediaFile {
   id        String         @id @default(cuid())
-  url       String // Full ImageKit CDN URL (https://ik.imagekit.io/rt9szzzbg/...)
-  fileId    String         @unique // ImageKit unique identifier
+  url       String // Full Garage (S3-compatible) CDN URL, e.g. GARAGE_PUBLIC_URL/<fileKey>
+  fileId    String         @unique // Garage S3 object key (also used as the delete key)
   name      String // Original file name
-  filePath  String         @default("/gadgetbroo/products") // ImageKit folder hierarchy
+  filePath  String         @default("/gadgetbroo/products") // Garage bucket folder path (mirrors fileKey)
   fileType  String         @default("image") // "image" | "video"
   mimeType  String? // Exact MIME (e.g., "image/webp", "video/mp4")
   size      Int            @default(0) // Size in bytes
