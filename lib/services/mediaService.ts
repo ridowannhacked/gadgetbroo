@@ -50,7 +50,7 @@ export const MediaService = {
         Bucket: BUCKET,
         Key: fileKey,
         ContentType: fileType,
-        // ACL: "public-read", // Uncomment if bucket requires ACLs, Garage usually uses bucket policies instead
+        ACL: "public-read", // Uncomment if bucket requires ACLs, Garage usually uses bucket policies instead
       });
 
       // Generate a presigned URL valid for 5 minutes
