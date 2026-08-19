@@ -1,20 +1,28 @@
-const fs = require('fs');
-let file = 'app/(admin)/admin/(dashboard)/pos/page.tsx';
-let c = fs.readFileSync(file, 'utf8');
+import { S3Client, DeleteBucketCorsCommand } from "@aws-sdk/client-s3";
+import dotenv from "dotenv";
 
-c = c.replace(/bg-\[\#12151a\]/g, 'bg-card');
-c = c.replace(/bg-\[\#161a22\]/g, 'bg-background');
-c = c.replace(/bg-\[\#0a0a0a\]/g, 'bg-background');
-c = c.replace(/bg-\[\#0f1219\]/g, 'bg-card');
-c = c.replace(/border-slate-800/g, 'border-border');
-c = c.replace(/border-slate-700/g, 'border-border');
-c = c.replace(/text-slate-500/g, 'text-muted-foreground');
-c = c.replace(/text-slate-400/g, 'text-muted-foreground');
-c = c.replace(/text-slate-300/g, 'text-muted-foreground');
-c = c.replace(/text-slate-200/g, 'text-foreground');
-c = c.replace(/text-white/g, 'text-foreground');
-c = c.replace(/bg-slate-800/g, 'bg-muted');
-c = c.replace(/bg-slate-700/g, 'bg-secondary');
-c = c.replace(/hover:bg-slate-600/g, 'hover:bg-secondary/80');
+dotenv.config();
 
-fs.writeFileSync(file, c);
+const s3Client = new S3Client({
+  endpoint: process.env.GARAGE_ENDPOINT,
+  region: process.env.GARAGE_REGION,
+  credentials: {
+    accessKeyId: process.env.GARAGE_ACCESS_KEY_ID,
+    secretAccessKey: process.env.GARAGE_SECRET_ACCESS_KEY,
+  },
+  forcePathStyle: true,
+});
+
+async function run() {
+  try {
+    const command = new DeleteBucketCorsCommand({
+      Bucket: process.env.GARAGE_BUCKET,
+    });
+    await s3Client.send(command);
+    console.log("✅ Successfully deleted CORS config from Garage Bucket!");
+  } catch (err) {
+    console.error("❌ Failed to delete CORS:", err);
+  }
+}
+
+run();

@@ -107,7 +107,7 @@ export async function DELETE(
       );
     }
 
-    // DB only — no ImageKit folder delete
+    // DB only — no Garage object delete
     await prisma.category.delete({ where: { id } });
 
     return NextResponse.json({

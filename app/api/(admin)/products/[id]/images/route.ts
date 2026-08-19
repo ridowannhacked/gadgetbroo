@@ -1,3 +1,4 @@
+import { MediaService } from "@/lib/services/mediaService";
 // app/api/(admin)/products/[id]/images/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -90,20 +91,13 @@ export async function DELETE(
   });
   if (!image) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Best-effort delete from ImageKit (only if not shared with other products)
+  // Best-effort delete from Garage (only if not shared with other products)
   if (image.mediaFile?.fileId) {
     const usageCount = await prisma.productImage.count({
       where: { mediaFileId: image.mediaFileId, id: { not: imageId } },
     });
     if (usageCount === 0) {
-      await fetch(`https://api.imagekit.io/v1/files/${image.mediaFile.fileId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            process.env.IMAGEKIT_PRIVATE_KEY + ":"
-          ).toString("base64")}`,
-        },
-      }).catch(console.error);
+      await MediaService.deleteFile(image.mediaFile.fileId);
     }
   }
 

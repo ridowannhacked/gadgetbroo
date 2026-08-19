@@ -75,7 +75,7 @@ export default function MediaPage() {
       );
       return;
     }
-    if (!confirm(`Delete "${file.name}" permanently from ImageKit?`)) return;
+    if (!confirm(`Delete "${file.name}" permanently from Garage storage?`)) return;
 
     setDeletingId(file.fileId);
     try {
@@ -124,7 +124,7 @@ export default function MediaPage() {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Media Library</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              All assets indexed in database from ImageKit{" "}
+              All assets indexed in database from Garage{" "}
               <code className="text-muted-foreground">/gadgetbroo</code>
             </p>
           </div>

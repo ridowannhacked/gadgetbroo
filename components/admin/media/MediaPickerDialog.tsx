@@ -282,7 +282,7 @@ export function MediaPickerDialog({
 
   /* ────────────────────────────────────────────────────────────────
      STEP 4.3: Actual upload — only called when "Upload Media" is clicked.
-     Pulls from stagedFiles, runs hash → dedup → IK upload → DB register.
+     Pulls from stagedFiles, runs hash → dedup → server-side Garage upload → DB register.
   ────────────────────────────────────────────────────────────────── */
   const processFiles = useCallback(
     async (filesToUpload: File[]) => {
@@ -325,44 +325,32 @@ export function MediaPickerDialog({
             continue;
           }
 
-          // 3. Get ImageKit upload credentials
+          // 3. Upload the file to Garage via our own server (no browser CORS involved)
           updateItem({ status: "uploading" });
           const mediaType = file.type.startsWith("video/") ? "video" : "image";
-          const authRes = await fetch(`/api/imagekit-upload-auth?type=${mediaType}`);
-          if (!authRes.ok) throw new Error("Failed to get upload credentials");
-          const authParams = await authRes.json();
-
-          // 4. Direct upload to ImageKit via FormData
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("publicKey", authParams.publicKey);
-          formData.append("signature", authParams.signature);
-          formData.append("expire", authParams.expire);
-          formData.append("token", authParams.token);
-          formData.append("fileName", file.name);
-          formData.append("folder", authParams.folder);
-
-          const ikRes = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+          const uploadForm = new FormData();
+          uploadForm.append("file", file);
+          const uploadRes = await fetch("/api/media/upload", {
             method: "POST",
-            body: formData,
+            body: uploadForm,
           });
-          if (!ikRes.ok) throw new Error("ImageKit upload failed");
-          const ikData = await ikRes.json();
+          const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) throw new Error(uploadData.error || "Cloud upload failed");
 
-          // 5. Register in PostgreSQL with hash
+          // 4. Register in PostgreSQL with hash
           const regRes = await fetch("/api/media", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              url: ikData.url,
-              fileId: ikData.fileId,
-              name: ikData.name || file.name,
-              filePath: ikData.filePath || authParams.folder,
+              url: uploadData.url,
+              fileId: uploadData.fileKey,
+              name: file.name,
+              filePath: uploadData.fileKey,
               fileType: mediaType,
               mimeType: file.type,
-              size: ikData.size || file.size,
-              width: ikData.width || null,
-              height: ikData.height || null,
+              size: file.size,
+              width: null,
+              height: null,
               hash: hashHex,
             }),
           });
@@ -838,7 +826,7 @@ export function MediaPickerDialog({
                             }`}>
                             {item.status === "hashing" && "Computing SHA-256 hash…"}
                             {item.status === "checking" && "Checking for duplicates…"}
-                            {item.status === "uploading" && "Uploading to ImageKit CDN…"}
+                            {item.status === "uploading" && "Uploading to Cloud Storage…"}
                             {item.status === "done" && "Uploaded & indexed in database"}
                             {item.status === "duplicate" && "Duplicate — reusing existing asset"}
                             {item.status === "error" && (item.error ?? "Upload failed")}
