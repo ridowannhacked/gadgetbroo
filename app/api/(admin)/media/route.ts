@@ -2,13 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "../../../../lib/auth";
 import prisma from "../../../../lib/prisma";
-import ImageKit from "imagekit";
+import { MediaService } from "@/lib/services/mediaService";
 
-const imagekit = new ImageKit({
-  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!,
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
-  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!,
-});
 
 import { checkPermission } from "@/lib/rbac";
 
@@ -193,11 +188,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from ImageKit CDN first, then clean DB record
-    try {
-      await imagekit.deleteFile(fileId);
-    } catch (err) {
-      console.error("ImageKit file not found or already deleted:", err);
-    }
+    await MediaService.deleteFile(fileId);
     await prisma.mediaFile.delete({ where: { fileId } });
 
     return NextResponse.json({ success: true });

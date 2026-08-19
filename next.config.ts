@@ -6,10 +6,9 @@ const nextConfig: NextConfig = {
     authInterrupts: true,
   },
   images: {
-    loader: "custom",
-    loaderFile: "./lib/imageKitLoader.ts",
     remotePatterns: [
       { protocol: "https", hostname: "ik.imagekit.io" },
+      { protocol: "https", hostname: "gadgetbroo.cdn.octetit.com" },
     ],
   },
 };

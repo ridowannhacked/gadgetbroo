@@ -1,3 +1,4 @@
+import { MediaService } from "@/lib/services/mediaService";
 // app/api/(admin)/products/[id]/images/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -96,14 +97,7 @@ export async function DELETE(
       where: { mediaFileId: image.mediaFileId, id: { not: imageId } },
     });
     if (usageCount === 0) {
-      await fetch(`https://api.imagekit.io/v1/files/${image.mediaFile.fileId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            process.env.IMAGEKIT_PRIVATE_KEY + ":"
-          ).toString("base64")}`,
-        },
-      }).catch(console.error);
+      await MediaService.deleteFile(image.mediaFile.fileId);
     }
   }
 

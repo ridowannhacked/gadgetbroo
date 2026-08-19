@@ -325,44 +325,41 @@ export function MediaPickerDialog({
             continue;
           }
 
-          // 3. Get ImageKit upload credentials
+          // 3. Get S3 Presigned URL credentials
           updateItem({ status: "uploading" });
           const mediaType = file.type.startsWith("video/") ? "video" : "image";
-          const authRes = await fetch(`/api/imagekit-upload-auth?type=${mediaType}`);
+          const authRes = await fetch("/api/media/upload-url", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fileName: file.name, fileType: file.type, type: mediaType })
+          });
           if (!authRes.ok) throw new Error("Failed to get upload credentials");
           const authParams = await authRes.json();
 
-          // 4. Direct upload to ImageKit via FormData
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("publicKey", authParams.publicKey);
-          formData.append("signature", authParams.signature);
-          formData.append("expire", authParams.expire);
-          formData.append("token", authParams.token);
-          formData.append("fileName", file.name);
-          formData.append("folder", authParams.folder);
-
-          const ikRes = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
-            method: "POST",
-            body: formData,
+          // 4. Direct upload to S3 via PUT
+          const s3Res = await fetch(authParams.presignedUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": file.type,
+            },
+            body: file,
           });
-          if (!ikRes.ok) throw new Error("ImageKit upload failed");
-          const ikData = await ikRes.json();
+          if (!s3Res.ok) throw new Error("Cloud upload failed");
 
           // 5. Register in PostgreSQL with hash
           const regRes = await fetch("/api/media", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              url: ikData.url,
-              fileId: ikData.fileId,
-              name: ikData.name || file.name,
-              filePath: ikData.filePath || authParams.folder,
+              url: authParams.url,
+              fileId: authParams.fileKey,
+              name: file.name,
+              filePath: authParams.fileKey,
               fileType: mediaType,
               mimeType: file.type,
-              size: ikData.size || file.size,
-              width: ikData.width || null,
-              height: ikData.height || null,
+              size: file.size,
+              width: null,
+              height: null,
               hash: hashHex,
             }),
           });
@@ -838,7 +835,7 @@ export function MediaPickerDialog({
                             }`}>
                             {item.status === "hashing" && "Computing SHA-256 hash…"}
                             {item.status === "checking" && "Checking for duplicates…"}
-                            {item.status === "uploading" && "Uploading to ImageKit CDN…"}
+                            {item.status === "uploading" && "Uploading to Cloud Storage…"}
                             {item.status === "done" && "Uploaded & indexed in database"}
                             {item.status === "duplicate" && "Duplicate — reusing existing asset"}
                             {item.status === "error" && (item.error ?? "Upload failed")}

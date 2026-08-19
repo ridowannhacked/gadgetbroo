@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../lib/prisma";
 import { Prisma } from "../../../../../src/generated/prisma/client";
-import ImageKit from "imagekit";
+import { MediaService } from "@/lib/services/mediaService";
 import { updateProductSchema } from "../../../../../zodSchemas/productSchema";
 import { checkPermission } from "../../../../../lib/rbac";
 
-const imagekit = new ImageKit({
-  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!,
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
-  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!,
-});
 
 export async function GET(
   _request: NextRequest,
@@ -185,11 +180,7 @@ export async function DELETE(
       if (usageCount === 0) {
         const mf = await prisma.mediaFile.findUnique({ where: { id: mediaFileId } });
         if (mf?.fileId) {
-          try {
-            await imagekit.deleteFile(mf.fileId);
-          } catch (err) {
-            console.error("ImageKit file not found or already deleted:", err);
-          }
+          await MediaService.deleteFile(mf.fileId);
           await prisma.mediaFile.delete({ where: { id: mediaFileId } });
         }
       }
