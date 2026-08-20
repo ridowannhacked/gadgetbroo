@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build && npm run copy:standalone-assets",
     "copy:standalone-assets": "cp -r public .next/standalone/public && mkdir -p .next/standalone/.next/static && cp -r .next/static/* .next/standalone/.next/static/",
-    "start": "node server.js -p 3000",
+    "start": "node server.js",
     "lint": "eslint"
   },
   "prisma": {
