@@ -12,7 +12,7 @@ export PATH="/www/server/nodejs/v24.19.0/bin:$PATH"
 # NOTE: aaPanel's Node Project creator nests the actual git checkout one
 # level deeper, inside a subfolder named after the project itself.
 ROOT="/www/wwwroot/dev.gadgetbroo.com/gadgetbroo"
-PORT=2222
+PORT=2323
 
 # Must match the app name/ID shown by `pm2 list` (or in aaPanel's
 # Website > Node Project page) for this project. Verify this on the
